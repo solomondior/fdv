@@ -11,6 +11,17 @@ const __FDV_FLOAT_STATE = '__fdvCardFloatState';
 const __FDV_COPY_MINT_INIT = '__fdvCopyMintInit';
 const __FDV_LIKE_INIT = '__fdvCardLikeInit';
 const __FDV_LIKE_HYDRATE_INIT = '__fdvCardLikeHydrateInit';
+const __FDV_CARD_LINK_INIT = '__fdvCardLinkInit';
+
+function _isInteractiveTarget(t) {
+  try {
+    if (!t) return false;
+    if (t.closest?.('a,button,input,textarea,select,label')) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
 
 function _runIdle(fn) {
   try {
@@ -33,7 +44,7 @@ function _scheduleLikeHydrate(root = document) {
     _runIdle(async () => {
       window.__fdvLikeHydratePending = false;
       try {
-        const mod = await import('../../widgets/library/index.js');
+        const mod = await import('../../addons/library/index.js');
         if (typeof mod?.bindFavoriteButtons === 'function') mod.bindFavoriteButtons(root);
       } catch {}
     });
@@ -298,6 +309,15 @@ try {
     document.addEventListener('pointerover', (e) => {
       // Only do this for real mouse hover.
       if (e && 'pointerType' in e && e.pointerType && e.pointerType !== 'mouse') return;
+
+      // If the user is aiming at an interactive element, don't steal the hover
+      // by floating the whole card (it makes Profile/Chart/Like feel "janky").
+      const t = e?.target;
+      if (_isInteractiveTarget(t)) return;
+      try {
+        if (t?.closest?.('[data-copy-mint]')) return;
+      } catch {}
+
       const card = e?.target?.closest?.('.card[data-key]');
       if (!card) return;
       _startFloatFreeze(card);
@@ -305,6 +325,41 @@ try {
 
     // Safety: if focus is lost / user alt-tabs, restore.
     window.addEventListener('blur', () => _endFloatFreeze(), { passive: true });
+  }
+} catch {}
+
+try {
+  if (typeof window !== 'undefined' && !window[__FDV_CARD_LINK_INIT]) {
+    window[__FDV_CARD_LINK_INIT] = true;
+
+    // Click anywhere on the card body to open the Profile (except when the
+    // click originated from an interactive element).
+    document.addEventListener('click', (e) => {
+      try {
+        if (!e || e.defaultPrevented) return;
+        if ('button' in e && e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+        const t = e.target;
+        if (!t) return;
+        if (_isInteractiveTarget(t)) return;
+        if (t.closest?.('[data-copy-mint]')) return;
+
+        const card = t.closest?.('.card[data-key]');
+        if (!card) return;
+        if (card?.dataset?.fdvPlaceholder === '1') return;
+
+        const a = card.querySelector?.('a.t-profile[data-link], a[data-link][href^="/token/"]');
+        const href = a?.getAttribute?.('href');
+        if (!a || !href) return;
+
+        try { e.preventDefault?.(); } catch {}
+        try { e.stopPropagation?.(); } catch {}
+
+        // Let the existing router click handler handle SPA navigation.
+        try { a.click(); } catch {}
+      } catch {}
+    });
   }
 } catch {}
 
@@ -349,7 +404,7 @@ try {
         const name = btn.getAttribute('data-token-name') || btn.dataset?.tokenName || '';
         const imageUrl = btn.getAttribute('data-token-image') || btn.dataset?.tokenImage || '';
 
-        const mod = await import('../../widgets/library/index.js');
+        const mod = await import('../../addons/library/index.js');
         if (mod?.ensureSendFavoriteButton) {
           mod.ensureSendFavoriteButton(btn.parentElement || document.body, { mint, symbol, name, imageUrl, className: 'micro-fav' });
         } else if (mod?.createSendFavoriteButton) {
@@ -550,7 +605,7 @@ export function coinCard(it) {
         title="Click to copy mint"
       >${escAttr(shortAddr(it.mint))}</span>
     </div>
-    <a class="t-profile" href="https://fdv.lol/token/${escAttr(it.mint)}" target="_blank" rel="noopener">Profile</a>
+    <a class="t-profile" data-link href="/token/${escAttr(it.mint)}">Profile</a>
   </div>
 
   <div class="metrics">
@@ -750,6 +805,8 @@ export function buildOrUpdateCard(existing, token) {
     const el = document.createElement('div');
     el.className = 'card';
     el.dataset.key = token.mint || token.id;
+    try { el.tabIndex = 0; } catch {}
+    try { el.setAttribute('role', 'link'); } catch {}
     el.innerHTML = coinCard(token);
     // attachFavorite(el, token);
     el.classList.add('is-entering');

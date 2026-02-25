@@ -1,5 +1,45 @@
-import { initSwapSystem } from "../vista/widgets/auto/swap/index.js";
 import { showHome, showProfile, showShill } from "./main/home.js";
+import { showLoading } from "../core/tools.js";
+
+let __fdvSwapLoaderPromise = null;
+function __parseJsonAttr__(str) {
+  if (!str) return null;
+  try { return JSON.parse(str); } catch { return null; }
+}
+
+function __collectSwapClickData__(el) {
+  const card = el?.closest?.('.card');
+  const dBtn = el?.dataset || {};
+  const dCard = card?.dataset || {};
+
+  const mint = dBtn.mint || dCard.mint || null;
+  const pairUrl = dBtn.pairUrl || dCard.pairUrl || null;
+
+  const optsBtn = __parseJsonAttr__(dBtn.swapOpts);
+  const optsCard = __parseJsonAttr__(dCard.swapOpts);
+  const opts = { ...(optsCard || {}), ...(optsBtn || {}) };
+
+  const hydrateBtn = __parseJsonAttr__(dBtn.tokenHydrate);
+  const hydrateCard = __parseJsonAttr__(dCard.tokenHydrate);
+  const tokenHydrate = { ...(hydrateCard || {}), ...(hydrateBtn || {}) };
+
+  const priority = opts.priority ?? (dBtn.priority === '1' || dCard.priority === '1');
+  const relay = opts.relay ?? dBtn.relay ?? dCard.relay;
+  const timeoutMs = opts.timeoutMs ?? Number(dBtn.timeoutMs || dCard.timeoutMs);
+
+  return { mint, pairUrl, tokenHydrate, priority, relay, timeoutMs };
+}
+
+async function __ensureSwapSystem__() {
+  if (__fdvSwapLoaderPromise) return __fdvSwapLoaderPromise;
+  __fdvSwapLoaderPromise = (async () => {
+    const mod = await import("../vista/addons/auto/swap/index.js");
+    try { mod.initSwapSystem?.(); } catch {}
+    try { window.__fdvSwapSystemReady = true; } catch {}
+    return mod;
+  })();
+  return __fdvSwapLoaderPromise;
+}
 
 function initRouter({
   onHome = () => {},
@@ -31,10 +71,27 @@ function initRouter({
     return () => notFound();
   }
 
-  function dispatch() {
-    let path = stripBase(location.pathname);
-    const handle = match(path);
-    handle();
+  function dispatch({ withLoading = false, defer = false } = {}) {
+    const run = () => {
+      let path = stripBase(location.pathname);
+      const handle = match(path);
+      handle();
+    };
+
+    if (withLoading) {
+      try { showLoading(); } catch {}
+    }
+    if (defer) nextPaint(run);
+    else run();
+  }
+
+  function nextPaint(fn) {
+    try {
+      // Ensure the loader overlay has a chance to paint.
+      requestAnimationFrame(() => { try { fn(); } catch {} });
+    } catch {
+      setTimeout(() => { try { fn(); } catch {} }, 0);
+    }
   }
 
   function nav(url, { push = true, replace = false } = {}) {
@@ -42,7 +99,7 @@ function initRouter({
     const href = target.pathname + target.search + target.hash;
     if (replace) history.replaceState({}, '', href);
     else if (push) history.pushState({}, '', href);
-    dispatch();
+    dispatch({ withLoading: true, defer: true });
   }
 
   function shouldIgnoreClick(e, a) {
@@ -62,20 +119,61 @@ function initRouter({
     if (!a) return;
     if (shouldIgnoreClick(e, a)) return;
     e.preventDefault();
-    nav(a.getAttribute('href'));
+    const href = a.getAttribute('href');
+    nav(href);
   });
 
-  window.addEventListener('popstate', dispatch);
+  document.addEventListener('pointerover', (e) => {
+    const el = e.target?.closest?.('[data-swap-btn], .swapCoin');
+    if (!el) return;
+    if (window.__fdvSwapSystemReady) return;
+    __ensureSwapSystem__().catch(() => {});
+  }, { capture: true, passive: true });
+
+  document.addEventListener('click', (e) => {
+    const el = e.target?.closest?.('[data-swap-btn], .swapCoin');
+    if (!el) return;
+    if (window.__fdvSwapSystemReady) return;
+
+    try { e.preventDefault(); } catch {}
+    try { e.stopImmediatePropagation(); } catch {}
+
+    const data = __collectSwapClickData__(el);
+    if (!data?.mint) return;
+
+    __ensureSwapSystem__()
+      .then((mod) => {
+        try {
+          // openSwapModal is exported; this avoids relying on the internal click handler.
+          mod.openSwapModal?.({
+            outputMint: data.mint,
+            tokenHydrate: data.tokenHydrate,
+            pairUrl: data.pairUrl,
+            priority: data.priority,
+            relay: data.relay,
+            timeoutMs: data.timeoutMs,
+          });
+        } catch {}
+      })
+      .catch(() => {});
+  }, { capture: true });
+
+  window.addEventListener('popstate', () => {
+    dispatch({ withLoading: true, defer: true });
+  });
 
   const pending = sessionStorage.getItem('spa:path');
   if (pending) {
     sessionStorage.removeItem('spa:path');
     history.replaceState({}, '', pending);
   }
-  dispatch();
-  initSwapSystem();
+  // No auto-dispatch here; the entrypoint (main.js) calls router.dispatch().
 
-  return { nav, dispatch, replace: (u) => nav(u, { replace: true }) };
+  return {
+    nav,
+    dispatch: (opts) => dispatch(opts),
+    replace: (u) => nav(u, { replace: true }),
+  };
 }
 
 export const router = initRouter({

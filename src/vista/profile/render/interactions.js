@@ -1,7 +1,23 @@
 export function wireNavigation({ onBack }) {
-  document.getElementById("btnBack")?.addEventListener("click", () => {
-    window.location.href="/"; 
-  });
+  const btn = document.getElementById("btnBack");
+  if (!btn) return;
+
+  btn.onclick = (e) => {
+    try { e?.preventDefault?.(); } catch {}
+
+    if (typeof onBack === 'function') {
+      try { onBack(); } catch {}
+      return;
+    }
+
+    // Fallback: go back if we can, otherwise go Home.
+    try {
+      if (history.length > 1) history.back();
+      else window.location.href = "/";
+    } catch {
+      try { window.location.href = "/"; } catch {}
+    }
+  };
 }
 
 export function wireCopy(mint) {

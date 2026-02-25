@@ -2,7 +2,7 @@ import { esc, escAttr } from "../formatters.js";
 
 const SOL_ADDR_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
-function sanitizeAdHtml(html) {
+export function sanitizeAdHtml(html) {
   try {
     const div = document.createElement("div");
     div.innerHTML = String(html || "");

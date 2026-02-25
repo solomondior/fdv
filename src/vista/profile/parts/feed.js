@@ -14,7 +14,7 @@ function isStreamOnDom() {
   return /on/i.test(btn.textContent || '');
 }
 
-function stopProfileFeed() {
+export function stopProfileFeed() {
   if (FEED.timer) { clearTimeout(FEED.timer); FEED.timer = null; }
   if (FEED.ac) { try { FEED.ac.abort(); } catch {} FEED.ac = null; }
 }

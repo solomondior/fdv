@@ -51,7 +51,17 @@ const limiter = new RateLimiter({
   maxRps: 2.5,
 });
 
-const elLoader = document.getElementById('loader');
+let elLoader = null;
+function getLoaderEl() {
+  try {
+    if (elLoader && elLoader.isConnected) return elLoader;
+    elLoader = document.getElementById('loader');
+    return elLoader;
+  } catch {
+    return null;
+  }
+}
+
 
 const REQUEST_TIMEOUT  = 10_000;
 const MAX_RETRIES      = 4;
@@ -174,12 +184,35 @@ export function isMemecoin(name,symbol, relax=false){
 }
 
 export function showLoading() {
-  if (elLoader) elLoader.hidden = false;
+  try { delete document.documentElement.dataset.appReady; } catch {}
+  const el = getLoaderEl();
+  if (el) {
+    try {
+      el.style.position = 'fixed';
+      el.style.inset = '0';
+      el.style.zIndex = '9999';
+      el.style.display = 'grid';
+      el.style.placeItems = 'center';
+    } catch {}
+
+    el.hidden = false;
+  }
   document.documentElement.style.overflow = 'hidden';
 }
 
 export function hideLoading() {
-  if (elLoader) elLoader.style.display = 'none';
+  // Mark app ready so CSS hides the loader even before JS touches the element.
+  try { document.documentElement.dataset.appReady = '1'; } catch {}
+  const el = getLoaderEl();
+  if (el) {
+    el.hidden = true;
+    el.style.display = '';
+  }
+  // If a full-screen overlay (like Profile) is open, it owns scroll-lock.
+  // Avoid fighting with it here.
+  try {
+    if (document.getElementById('fdvProfileOverlay')) return;
+  } catch {}
   document.documentElement.style.overflow = '';
 }
 

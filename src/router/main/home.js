@@ -1,5 +1,5 @@
 import { pipeline, stopPipelineStream } from '../../engine/pipeline.js';
-import { renderProfileView } from "../../vista/profile/page.js";
+import { renderProfileView, closeProfileOverlay } from "../../vista/profile/page.js";
 import { renderHomeView } from '../../vista/meme/page.js';
 import { renderShillContestView } from "../../vista/shill/page.js"; 
 import { renderShillLeaderboardView } from "../../vista/shill/leaderboard.js"; 
@@ -176,6 +176,13 @@ function enqueueRender(payload) {
     const p = _pendingUpdate;
     _pendingUpdate = null;
     if (!p || !Array.isArray(p.items) || !p.items.length) return;
+
+    // Don't keep repainting Home while another route (like Profile overlay) is active.
+    try {
+      if (document.body?.dataset?.route && document.body.dataset.route !== 'home') return;
+      if (document.getElementById('fdvProfileOverlay')) return;
+    } catch {}
+
     renderHomeView(p.items, p.ad || null, p.marquee || { trending: [], new: [] });
   });
 }
@@ -196,7 +203,11 @@ async function runHome({ force = false } = {}) {
 }
 export async function showHome({ force = false } = {}) {
   setRoute('home');
-  if (dedupeView('home', { force })) return;
+  try { closeProfileOverlay(); } catch {}
+  if (dedupeView('home', { force })) {
+    hideLoading();
+    return;
+  }
   wireHomeExitButton({ visible: true });
   wireStreamButton();
 
@@ -216,10 +227,24 @@ export async function showHome({ force = false } = {}) {
 
 export async function showProfile({ mint, force = false } = {}) {
   setRoute('profile');
+  try { stopHomeLoop(); } catch {}
+  try { stopPipelineStream(); } catch {}
   wireHomeExitButton({ visible: false });
-  if (dedupeView(`profile:${mint || ''}`, { force })) return;
+  if (dedupeView(`profile:${mint || ''}`, { force })) {
+    hideLoading();
+    return;
+  }
   try {
-    await renderProfileView(mint);
+    await renderProfileView(mint, { onBack: () => {
+      try { closeProfileOverlay(); } catch {}
+      try {
+        history.replaceState({}, '', '/');
+        try { window.dispatchEvent(new PopStateEvent('popstate')); }
+        catch { try { window.dispatchEvent(new Event('popstate')); } catch {} }
+      } catch {
+        try { window.location.href = '/'; } catch {}
+      }
+    }});
   } finally {
     hideLoading();
   }
@@ -227,8 +252,12 @@ export async function showProfile({ mint, force = false } = {}) {
 
 export async function showShill({ mint, leaderboard = false, force = false } = {}) {
   setRoute('shill');
+  try { closeProfileOverlay(); } catch {}
   wireHomeExitButton({ visible: false });
-  if (dedupeView(`shill:${leaderboard ? 'lb' : 'contest'}:${mint || ''}`, { force })) return;
+  if (dedupeView(`shill:${leaderboard ? 'lb' : 'contest'}:${mint || ''}`, { force })) {
+    hideLoading();
+    return;
+  }
   try {
     if (leaderboard) {
       await renderShillLeaderboardView({ mint });

@@ -275,10 +275,19 @@ export async function renderShillContestView(input) {
 }
 
 function ensureShillStyles() {
-  if (!document.querySelector('link[href="/src/styles/shill.css"]')) {
-    const style = document.createElement("link");
-    style.rel = "stylesheet";
-    style.href = "/src/assets/styles/shill.css";
-    document.head.appendChild(style);
-  }
+  const href = "/src/assets/styles/shill/shill.css";
+  try {
+    const wanted = new URL(href, location.origin).pathname;
+    const existing = [...document.querySelectorAll('link[rel="stylesheet"]')]
+      .find((l) => {
+        try { return new URL(l.getAttribute('href') || l.href, location.origin).pathname === wanted; } catch { return false; }
+      });
+    if (existing) return;
+  } catch {}
+
+  const style = document.createElement("link");
+  style.rel = "stylesheet";
+  style.href = href;
+  style.dataset.fdvStyle = "shill";
+  document.head.appendChild(style);
 }

@@ -28,7 +28,19 @@ export function ensureOpenLibraryHeaderBtn(createOpenLibraryButton) {
   const header = document.querySelector('.header .container .superFeat');
   if (!header) return;
   if (!document.getElementById('btnOpenLibrary')) {
-    const btn = createOpenLibraryButton({ label: '📚 Library', className: 'fdv-lib-btn' });
+    const factory = typeof createOpenLibraryButton === 'function'
+      ? createOpenLibraryButton
+      : ({ label = '📚 Library', className = 'fdv-lib-btn' } = {}) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = className;
+          b.textContent = label;
+          // let the library module's delegated handler (if present) catch this
+          b.setAttribute('data-open-library', '');
+          return b;
+        };
+
+    const btn = factory({ label: '📚 Library', className: 'fdv-lib-btn' });
     btn.id = 'btnOpenLibrary';
     btn.style.marginBottom = "15px";
     header.appendChild(btn);
