@@ -281,13 +281,3 @@ fdv.lol is open-source and community-driven. You can help by:
 
 ⚡ Together we can make fdv.lol the fastest, simplest, and most trusted memecoin radar on Solana.
 
-
-feat(spa): stabilize profile overlay + card navigation; add library export;
-
-Improve SPA reliability for Home → Profile overlay (modules/CSS always available, overlay mounts correctly);
-Prevent history/back loops by forcing SPA return to Home from overlay flows;
-Make token cards/Profile links more responsive (don’t steal hover/clicks; click card body opens profile; larger hit-area);
-Restore profile overlay layout parity by reusing container grid wrapper and adjusting overlay padding;
-Fix Home crash from missing createOpenLibraryButton factory;
-Rebind favorites/swap on overlay insertion; hydrate like counts reliably on fast SPA nav;
-Add Library “Share” button to export saved tokens as JSON (download + best-effort clipboard copy);

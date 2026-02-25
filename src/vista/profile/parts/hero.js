@@ -134,16 +134,17 @@ export function initHero({ token, scored, mint, onBack }) {
   } catch {}
 
   // Shill promote button
-  try {
-    const actions = root.querySelector(".extraFeat");
-    if (actions && !document.getElementById("btnShill")) {
-      const a = document.createElement("a");
-      a.id = "btnShill";
-      a.className = "btn btn-ghost";
-      a.setAttribute("data-link", "");
-      a.href = `/shill?mint=${encodeURIComponent(mint)}`;
-      a.textContent = "Metrics";
-      actions.appendChild(a);
-    }
-  } catch {}
+  // try {
+  //   const actions = root.querySelector(".extraFeat");
+  //   if (actions && !document.getElementById("btnShill")) {
+  //     const a = document.createElement("a");
+  //     a.id = "btnShill";
+  //     a.className = "btn btn-ghost";
+  //     a.setAttribute("data-link", "");
+  //     a.href = `/shill?mint=${encodeURIComponent(mint)}`;
+  //     a.textContent = "Metrics";
+  //     a.disabled = true;
+  //     actions.appendChild(a);
+  //   }
+  // } catch {}
 }
