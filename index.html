@@ -100,7 +100,21 @@
         <circle class="ring" cx="25" cy="25" r="22" />
         <circle class="arc"  cx="25" cy="25" r="22" />
       </svg>
-      <div id="meta" class="sub">Loading…</div>
+      <div id="meta" class="sub">
+        <span class="fdv-loader-fallback">Loading…</span>
+        <span class="fdv-loader-cycler" aria-hidden="true">
+          <span class="fdv-loader-msg" style="--i:0">Bending market data…</span>
+          <span class="fdv-loader-msg" style="--i:1">Scanning Solana pairs…</span>
+          <span class="fdv-loader-msg" style="--i:2">Checking liquidity + volume…</span>
+          <span class="fdv-loader-msg" style="--i:3">Computing FDV / Liq ratio…</span>
+          <span class="fdv-loader-msg" style="--i:4">Normalizing token socials…</span>
+          <span class="fdv-loader-msg" style="--i:5">Tip: Tap a mint to copy it.</span>
+          <span class="fdv-loader-msg" style="--i:6">Tip: Use Stream to keep it live.</span>
+          <span class="fdv-loader-msg" style="--i:7">Tip: Liquidity matters more than hype.</span>
+          <span class="fdv-loader-msg" style="--i:8">FDV = Fully Diluted Valuation.</span>
+          <span class="fdv-loader-msg" style="--i:9">Looking for clean entries…</span>
+        </span>
+      </div>
     </div>
     <noscript>
       <div class="wrap">

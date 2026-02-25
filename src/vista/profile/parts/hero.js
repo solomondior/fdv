@@ -1,18 +1,21 @@
-import { createSendFavoriteButton, createOpenLibraryButton } from "../../widgets/library/index.js";
+import { createSendFavoriteButton, createOpenLibraryButton } from "../../addons/library/index.js";
 import { wireNavigation, wireCopy } from "../render/interactions.js";
 import { FALLBACK_LOGO } from "../../../config/env.js";
 import { buildSocialLinksHtml } from "../../../lib/socialBuilder.js";
 import { getTokenLogoPlaceholder, queueTokenLogoLoad } from "../../../core/ipfs.js";
 
 export function initHero({ token, scored, mint, onBack }) {
-  const elApp = document.getElementById("app");
-  if (!elApp) return;
+  const root =
+    document.getElementById('fdvProfileOverlayMount') ||
+    document.getElementById('fdvProfileOverlay') ||
+    document.getElementById('app') ||
+    document;
 
   // Logo & title
   const rawLogo = token.imageUrl || "";
   const sym = token.symbol || token.name || "";
   const logo = getTokenLogoPlaceholder(rawLogo, sym) || FALLBACK_LOGO(token.symbol);
-  const media = elApp.querySelector(".profile__hero .media");
+  const media = root.querySelector(".profile__hero .media");
   if (media) {
     media.innerHTML = `<img class="logo" src="${logo}" data-logo-raw="${rawLogo}" data-sym="${sym}" alt="">`;
     try {
@@ -20,7 +23,7 @@ export function initHero({ token, scored, mint, onBack }) {
       if (img) queueTokenLogoLoad(img, rawLogo, sym);
     } catch {}
   }
-  const title = elApp.querySelector(".profile__hero .title");
+  const title = root.querySelector(".profile__hero .title");
   if (title) title.textContent = token.symbol || "Token";
 
   // Back navigation 
@@ -29,7 +32,7 @@ export function initHero({ token, scored, mint, onBack }) {
 
   // Open Library button
   try {
-    const backBox = elApp.querySelector(".profile__hero .backBox");
+    const backBox = root.querySelector(".profile__hero .backBox");
     if (backBox) {
       let openBtn = document.getElementById("btnOpenLibrary") || backBox.querySelector('[data-open-library]');
       if (!openBtn) {
@@ -46,7 +49,7 @@ export function initHero({ token, scored, mint, onBack }) {
 
   // Favorite
   try {
-    const extra = elApp.querySelector(".profile__hero .extraFeat");
+    const extra = root.querySelector(".profile__hero .extraFeat");
     if (extra && !extra.querySelector(`[data-fav-send][data-mint="${mint}"]`)) {
       const favBtn = createSendFavoriteButton({
         mint,
@@ -61,7 +64,7 @@ export function initHero({ token, scored, mint, onBack }) {
 
   // Social icons (idempotent; rebuild only if mint changed)
   try {
-    const socials = elApp.querySelector(".profile__links");
+    const socials = root.querySelector(".profile__links");
     socials.innerHTML = buildSocialLinksHtml(token, mint);
     socials.dataset.mint = mint;
   } catch {}
@@ -107,7 +110,7 @@ export function initHero({ token, scored, mint, onBack }) {
     holdBtn.id = "btnHoldAction";
     holdBtn.className = "btn btn--primary btn-ghost";
     holdBtn.textContent = "Hold";
-    const actions = elApp.querySelector(".profile__navigation .actions");
+    const actions = root.querySelector(".profile__navigation .actions");
     if (actions) actions.prepend(holdBtn);
   }
 
@@ -132,7 +135,7 @@ export function initHero({ token, scored, mint, onBack }) {
 
   // Shill promote button
   try {
-    const actions = elApp.querySelector(".extraFeat");
+    const actions = root.querySelector(".extraFeat");
     if (actions && !document.getElementById("btnShill")) {
       const a = document.createElement("a");
       a.id = "btnShill";

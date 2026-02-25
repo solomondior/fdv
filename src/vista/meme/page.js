@@ -26,11 +26,11 @@ import './metrics/kpi/draw.js';
 import './metrics/kpi/sticky.js';
 
 // Swap direct init() calls for the widget loader VM
-import { widgets, registerCoreWidgets, prewarmDefaults } from '../widgets/loader.js';
+import { widgets, registerCoreWidgets, prewarmDefaults } from '../addons/loader.js';
 
 // Keep button factories for header
-import { createOpenLibraryButton } from '../widgets/library/index.js';
-import { initSearch, createOpenSearchButton } from '../widgets/search/index.js';
+import { createOpenLibraryButton } from '../addons/library/index.js';
+import { initSearch, createOpenSearchButton } from '../addons/search/index.js';
 // import { createOpenFavboardButton } from '../widgets/favboard/index.js';
 
 import {
@@ -282,7 +282,7 @@ export function renderHomeView(items, adPick, marquee) {
   _latestAd = adPick || _latestAd;
   _latestMarquee = marquee || null;
 
-  ensureOpenLibraryHeaderBtn();
+  ensureOpenLibraryHeaderBtn(createOpenLibraryButton);
   // ensureFavboardHeaderBtn();
   try { ingestSnapshot(_latestItems); } catch {}
   // renderMarquee(_latestMarquee);

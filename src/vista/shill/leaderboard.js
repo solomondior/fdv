@@ -1,10 +1,32 @@
 import { FDV_METRICS_BASE } from "../../config/env.js";
 
+function ensureShillStyles() {
+  const href = "/src/assets/styles/shill/shill.css";
+  try {
+    const wanted = new URL(href, location.origin).pathname;
+    const existing = [...document.querySelectorAll('link[rel="stylesheet"]')]
+      .find((l) => {
+        try { return new URL(l.getAttribute('href') || l.href, location.origin).pathname === wanted; } catch { return false; }
+      });
+    if (existing) return;
+  } catch {}
+
+  try {
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = href;
+    style.dataset.fdvStyle = 'shill';
+    document.head.appendChild(style);
+  } catch {}
+}
+
 export async function renderShillLeaderboardView({ mint } = {}) {
   const root = document.getElementById("app");
   const header = document.querySelector('.header');
   if (header) header.style.display = 'none';
   if (!root) return;
+
+  ensureShillStyles();
 
   const urlParams = new URLSearchParams(location.search);
   const isEmbed = ["1","true","yes"].includes((urlParams.get("embed") || "").toLowerCase());

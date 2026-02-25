@@ -1,11 +1,27 @@
 .profile { 
-    padding: 16px;
+    padding: 10px 0 0 0;
     min-height: calc(100vh - 32px - 48px - 48px); 
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     max-width: 960px;
     margin: 0 auto;
+}
+
+/* SPA Profile overlay: keeps Home DOM mounted behind */
+.fdv-profile-overlay{
+  position:fixed;
+  inset:0;
+  z-index:9000;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  background:var(--bg);
+  touch-action:pan-y;
+}
+
+.fdv-profile-overlay__inner:not(.grid){
+  padding: 0 12px 24px;
 }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace }
 
@@ -122,7 +138,7 @@
 .buy-btn { color: #6ec1ff;font-weight: 800;border: 1px solid #1165a3; }
 
 @media (max-width: 520px) {
-  .buy-btn { width: 30%; font-size: small; padding: 12px; }
+  .buy-btn { width: 30%; font-size: 0.8rem; padding: 12px; }
 }
 
 
@@ -587,6 +603,7 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
     grid-row: 2;
     justify-self: end;
     align-self: end;
+    align-items: flex-end;
 }
 
 .profile__navigation .actions{
