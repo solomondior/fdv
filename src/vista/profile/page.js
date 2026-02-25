@@ -18,7 +18,6 @@ try {
   widgets.register('swap', {
     importer: () => import('../addons/auto/swap/index.js'),
     init: ({ mod }) => {
-      // Only initialize the swap system once per session.
       if (window.__fdvSwapSystemInited) return;
       window.__fdvSwapSystemInited = 1;
       if (typeof mod.initSwapSystem === 'function') mod.initSwapSystem();
@@ -44,7 +43,28 @@ try {
 } catch {}
 
 function errorNotice(mount, msg) {
-  mount.innerHTML = `<div class="wrap"><div class="small">Error: ${msg} <a data-link href="/">Home</a></div></div>`;
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[ch] || ch));
+
+  const safeMsg = esc(msg || 'Unknown error');
+
+  mount.innerHTML = `
+    <div id="fdvProfileErrorBackdrop" style="position:fixed;inset:0;z-index:9200;display:grid;place-items:center;padding:18px;background:color-mix(in srgb, var(--bg, #050607) 92%, transparent);backdrop-filter: blur(2px);-webkit-backdrop-filter: blur(2px);">
+      <div role="alert" aria-live="assertive" style="width:min(92vw,560px);border:1px solid var(--border, rgba(128,255,205,.22));border-radius:16px;background:linear-gradient(180deg,color-mix(in srgb, var(--panel, #0a0e0c) 92%, transparent),color-mix(in srgb, var(--panel2, #0a1410) 98%, transparent));box-shadow:var(--shadow-2, 0 18px 55px rgba(0,0,0,.55));padding:16px 16px 14px;">
+        <div style="font-weight:900;letter-spacing:.2px;margin:0 0 8px 0;">Token data unavailable</div>
+        <div class="small" style="opacity:.92;line-height:1.5;">${safeMsg}</div>
+        <div class="small" style="opacity:.72;margin-top:10px;">Tip: Swipe from the left edge to go back.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end;margin-top:14px;">
+          <button id="fdvProfileErrorBackBtn" class="btn" type="button">Back</button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 const tokenCache = window.__tokenCache || (window.__tokenCache = new Map());
@@ -209,7 +229,18 @@ export async function renderProfileView(input, { onBack } = {}) {
   // (styles are mounted above; no-op here)
 
   const mint = typeof input === "string" ? input : input?.mint;
-  if (!mint) return errorNotice(overlayMount, "Token not found.");
+  if (!mint) {
+    errorNotice(overlayMount, "Token not found.");
+    try {
+      const btn = overlayMount.querySelector('#fdvProfileErrorBackBtn');
+      if (btn) btn.addEventListener('click', () => { try { backFn(); } catch {} }, { once: true });
+      const a = overlayMount.querySelector('#fdvProfileErrorBackLink');
+      if (a) a.addEventListener('click', (e) => { try { e.preventDefault(); } catch {} try { backFn(); } catch {} }, { once: true });
+      const bd = overlayMount.querySelector('#fdvProfileErrorBackdrop');
+      if (bd) bd.addEventListener('click', (e) => { try { if (e && e.target === bd) backFn(); } catch {} }, { passive: true });
+    } catch {}
+    return;
+  }
 
   const isSame = lastRenderedMint === mint;
   lastRenderedMint = mint;
@@ -255,7 +286,18 @@ export async function renderProfileView(input, { onBack } = {}) {
       raw = await fetchTokenInfo(mint);
       if (raw && !raw.error) tokenCache.set(mint, raw);
     }
-    if (raw?.error) return errorNotice(overlayMount, raw.error);
+    if (raw?.error) {
+      errorNotice(overlayMount, raw.error);
+      try {
+        const btn = overlayMount.querySelector('#fdvProfileErrorBackBtn');
+        if (btn) btn.addEventListener('click', () => { try { backFn(); } catch {} }, { once: true });
+        const a = overlayMount.querySelector('#fdvProfileErrorBackLink');
+        if (a) a.addEventListener('click', (e) => { try { e.preventDefault(); } catch {} try { backFn(); } catch {} }, { once: true });
+        const bd = overlayMount.querySelector('#fdvProfileErrorBackdrop');
+        if (bd) bd.addEventListener('click', (e) => { try { if (e && e.target === bd) backFn(); } catch {} }, { passive: true });
+      } catch {}
+      return;
+    }
   } catch {
     try {
       await widgets.mount('swap');
@@ -267,6 +309,14 @@ export async function renderProfileView(input, { onBack } = {}) {
     } catch {}
     // TODO: center error notices in the middle of the screen instead of inside the profile shell, since if we got here it likely means the shell failed to load/render properly. For now just link to Home as a fallback.
     errorNotice(overlayMount, "Token data unavailable. You can still swap by mint.");
+    try {
+      const btn = overlayMount.querySelector('#fdvProfileErrorBackBtn');
+      if (btn) btn.addEventListener('click', () => { try { backFn(); } catch {} }, { once: true });
+      const a = overlayMount.querySelector('#fdvProfileErrorBackLink');
+      if (a) a.addEventListener('click', (e) => { try { e.preventDefault(); } catch {} try { backFn(); } catch {} }, { once: true });
+      const bd = overlayMount.querySelector('#fdvProfileErrorBackdrop');
+      if (bd) bd.addEventListener('click', (e) => { try { if (e && e.target === bd) backFn(); } catch {} }, { passive: true });
+    } catch {}
     return;
   }
 

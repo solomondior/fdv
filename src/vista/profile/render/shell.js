@@ -64,7 +64,7 @@ export default function renderShell({ mount, mint, adHtml = "" }) {
           <div class="titleMint"><a href="${solscanHref}" target="_blank" rel="noopener noreferrer nofollow">${esc(shortMint)}</a></div>
         </div>
         <div class="profile__links" id="profileLinks"></div>
-        <div class="backBox"><button class="btn btn-ghost" id="btnBack">Home</button></div>
+        <div class="backBox"><button class="btn btn-ghost" id="btnBack">Back</button></div>
         <div class="extraFeat"></div>
       </div>
 

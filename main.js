@@ -1,3 +1,5 @@
+import './src/core/sw/register.js';
+
 import { router } from './src/router/switch.js';
 
 // Eager-load route modules so SPA transitions can't leave them "offline".
