@@ -36,13 +36,11 @@ export function initHero({ token, scored, mint, onBack }) {
     if (backBox) {
       let openBtn = document.getElementById("btnOpenLibrary") || backBox.querySelector('[data-open-library]');
       if (!openBtn) {
-        openBtn = createOpenLibraryButton({ label: "📚 Library", className: "btn btn-ghost" });
+        openBtn = createOpenLibraryButton({ label: "Library", className: "btn btn-ghost" });
         openBtn.id = "btnOpenLibrary";
       }
       if (openBtn.parentElement !== backBox) backBox.prepend(openBtn);
       openBtn.className = "btn btn-ghost";
-      openBtn.style.border = "none";
-      openBtn.style.fontSize = "0.8em";
       openBtn.style.marginBottom = "15px";
     }
   } catch {}

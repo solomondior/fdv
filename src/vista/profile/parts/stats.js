@@ -6,6 +6,7 @@ import { fmtMoney, fmtNum, pill, cssReco } from "../formatters.js";
 import { renderPairsTable } from "../render/pairsTable.js";
 import { setupStatsCollapse, setupExtraMetricsToggle, wireStatsResizeAutoShortLabels } from "../render/interactions.js";
 import { mountLivePriceLine, updateLivePriceLine, updateLivePriceAnchors } from "../render/liveLine.js";
+import { mountProfileKpiMetrics } from "../render/kpiMetrics.js";
 
 const PAIRS_SIG_MAX = 30;
 
@@ -17,7 +18,7 @@ function pairsSignature(pairs) {
     .join("|") + `|len=${pairs.length}`;
 }
 
-export function initStatsAndCharts({ token, scored, BUY_RULES, FDV_LIQ_PENALTY }) {
+export function initStatsAndCharts({ token, scored, BUY_RULES, FDV_LIQ_PENALTY, mint }) {
   const gridEl = document.getElementById("statsGrid");
   if (!gridEl) return null;
 
@@ -132,6 +133,12 @@ export function initStatsAndCharts({ token, scored, BUY_RULES, FDV_LIQ_PENALTY }
   if (Number.isFinite(token.priceUsd)) {
     updateLivePriceLine(liveWrap, +token.priceUsd, Date.now());
   }
+
+  // KPI metrics (profile coin)
+  try {
+    const mintId = String(mint || token?.mint || token?.id || "").trim();
+    if (mintId) mountProfileKpiMetrics({ mint: mintId, token });
+  } catch {}
 
   return { gridEl, liveWrap, firstInit };
 }

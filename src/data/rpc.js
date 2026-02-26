@@ -188,6 +188,56 @@ async function rpcFetch({ rpcUrl, rpcHeaders, body, signal }) {
 	return json;
 }
 
+// This intentionally does NOT persist; some users start rate-limited and later upgrade.
+const _rpcHealth = new Map();
+
+function _getHealth(url) {
+	const key = String(url || '').trim();
+	if (!key) return null;
+	let h = _rpcHealth.get(key);
+	if (!h) {
+		h = {
+			limitedUntil: 0,
+			backoffMs: 0,
+			lastLimitedAt: 0,
+			lastOkAt: 0,
+		};
+		_rpcHealth.set(key, h);
+	}
+	return h;
+}
+
+function _cooldownRemainingMs(url) {
+	const h = _getHealth(url);
+	if (!h) return 0;
+	return Math.max(0, Number(h.limitedUntil || 0) - nowMs());
+}
+
+function _noteRpcOk(url) {
+	const h = _getHealth(url);
+	if (!h) return;
+	h.lastOkAt = nowMs();
+	// Recover fairly quickly; keep some memory of previous backoff.
+	if (h.backoffMs > 0) h.backoffMs = Math.max(0, Math.floor(h.backoffMs * 0.6));
+	if (h.backoffMs < 100) h.backoffMs = 0;
+	if (h.limitedUntil && h.limitedUntil < nowMs()) h.limitedUntil = 0;
+}
+
+function _noteRpcLimited(url, status) {
+	const h = _getHealth(url);
+	if (!h) return;
+
+	const base = (Number(status) === 403) ? 2500 : 1200;
+	const max = 60_000;
+	const prev = Math.max(0, Number(h.backoffMs || 0));
+	const next = prev ? Math.min(max, Math.max(base, Math.floor(prev * 1.7))) : base;
+	const jitter = Math.floor(Math.random() * 250);
+
+	h.backoffMs = next;
+	h.lastLimitedAt = nowMs();
+	h.limitedUntil = nowMs() + next + jitter;
+}
+
 // Cache keyed by `${rpcUrl}|${mint}`.
 const _mintCache = new Map();
 
@@ -199,6 +249,7 @@ export async function sampleMintRpc(
 		commitment = 'processed',
 		timeoutMs = 900,
 		cacheMs = 250,
+		staleCacheMs = 5 * 60_000,
 		signal,
 		debug,
 		retries = 0,
@@ -215,6 +266,34 @@ export async function sampleMintRpc(
 	const key = `${url}|${id}`;
 	const t = nowMs();
 	const cached = _mintCache.get(key);
+	const cooldownMs = _cooldownRemainingMs(url);
+	if (cooldownMs > 0 && cached && cached.res) {
+		const ageMs = t - Number(cached.at || 0);
+		if (ageMs <= Math.max(0, Number(staleCacheMs || 0))) {
+			return {
+				...cached.res,
+				cache: {
+					hit: true,
+					stale: true,
+					ageMs,
+					cooldownMs,
+				},
+			};
+		}
+	}
+	if (cooldownMs > 0 && !(cached && cached.pending)) {
+		// Don’t create new traffic during a cooldown window.
+		return {
+			ok: false,
+			mint: id,
+			rpcUrl: url,
+			error: 'rpc_cooldown',
+			status: null,
+			timing: { ms: 0 },
+			cooldownMs,
+		};
+	}
+
 	if (cached && cached.res && (t - Number(cached.at || 0)) <= Math.max(0, Number(cacheMs || 0))) {
 		return { ...cached.res, cache: { hit: true, ageMs: t - Number(cached.at || 0) } };
 	}
@@ -240,6 +319,7 @@ export async function sampleMintRpc(
 			timeoutMs,
 			signal
 		);
+		_noteRpcOk(url);
 
 		const shape = summarizeRpcShape(json);
 		const val = json?.result?.value;
@@ -312,13 +392,50 @@ export async function sampleMintRpc(
 			} catch (e) {
 				const msg = String(e?.message || e);
 				const status = Number(e?.status || 0) || null;
+				if (status === 429 || status === 403) _noteRpcLimited(url, status);
 				if (dbg) {
 					try {
 						console.debug('[rpc][mint] sample fail', { mint: id, status, msg, shape: summarizeRpcShape(e?.rpc) });
 					} catch {}
 				}
+
+				// If we just got limited, prefer returning a stale cached value (when available)
+				// instead of escalating traffic by retrying.
+				if (status === 429 || status === 403) {
+					try {
+						const c = _mintCache.get(key);
+						if (c && c.res) {
+							const ageMs = nowMs() - Number(c.at || 0);
+							if (ageMs <= Math.max(0, Number(staleCacheMs || 0))) {
+								return {
+									...c.res,
+									cache: {
+										hit: true,
+										stale: true,
+										ageMs,
+										cooldownMs: _cooldownRemainingMs(url),
+									},
+								};
+							}
+						}
+					} catch {}
+
+					// Don’t spin retries on rate-limits/forbidden; enter cooldown and return.
+					const out = {
+						ok: false,
+						mint: id,
+						rpcUrl: url,
+						error: msg || (status === 429 ? 'too_many_requests' : 'forbidden'),
+						status,
+						timing: { ms: 0 },
+						cooldownMs: _cooldownRemainingMs(url),
+					};
+					_mintCache.set(key, { at: nowMs(), res: out, pending: null });
+					return out;
+				}
+
 				if (attempt >= Math.max(0, Number(retries || 0))) {
-					const out = { ok: false, mint: id, rpcUrl: url, error: msg || 'rpc_fail', status, timing: { ms: 0 } };
+					const out = { ok: false, mint: id, rpcUrl: url, error: msg || 'rpc_fail', status, timing: { ms: 0 }, cooldownMs: _cooldownRemainingMs(url) };
 					_mintCache.set(key, { at: nowMs(), res: out, pending: null });
 					return out;
 				}
