@@ -11,6 +11,7 @@ import { initHero } from "./parts/hero.js";
 import { initStatsAndCharts } from "./parts/stats.js";
 import { startProfileFeed, stopProfileFeed } from "./parts/feed.js";
 import { autoStartProfileMetrics } from "../../analytics/shill.js";
+import { mountProfileKpiMetrics } from "./render/kpiMetrics.js";
 
 try { registerCoreWidgets(); } catch {}
 try { prewarmDefaults(); } catch {}
@@ -257,6 +258,10 @@ export async function renderProfileView(input, { onBack } = {}) {
 
   renderShell({ mount: overlayMount, mint, adHtml: "" });
 
+  // Render KPI table immediately (best-effort from localStorage),
+  // so the user doesn't land on a persistent "Loading…" row.
+  try { mountProfileKpiMetrics({ mint }); } catch {}
+
   // Bind feature widgets to the freshly-rendered overlay DOM.
   try { widgets.mount('favorites-bind', { root: overlayMount }).catch(() => {}); } catch {}
   try { widgets.mount('swap', { root: overlayMount }).catch(() => {}); } catch {}
@@ -325,7 +330,7 @@ export async function renderProfileView(input, { onBack } = {}) {
 
   initHero({ token, scored, mint, onBack: backFn });
 
-  const statsCtx = initStatsAndCharts({ token, scored, BUY_RULES, FDV_LIQ_PENALTY });
+  const statsCtx = initStatsAndCharts({ token, scored, BUY_RULES, FDV_LIQ_PENALTY, mint });
 
   // (adsPromise is handled above to avoid blocking initial shell)
 

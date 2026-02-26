@@ -91,6 +91,18 @@ export default function renderShell({ mount, mint, adHtml = "" }) {
         </div>
       </div>
 
+      <div class="profile__card">
+        <div class="label">KPI metrics (over time)</div>
+        <div class="table-scroll">
+          <table class="pairs">
+            <thead><tr><th>KPI</th><th>Latest</th><th>Trend</th></tr></thead>
+            <tbody id="kpiMetricsBody">
+              <tr><td colspan="3" class="muted small">Loading… keep the stream running.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="profile__card__extra_metrics">
         <div class="label"></div>
         <div class="table-scroll">
