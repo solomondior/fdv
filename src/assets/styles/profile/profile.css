@@ -135,11 +135,23 @@
 .profile__hero .titleMint { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; color: var(--muted); font-size:13px; margin-top:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100% }
 .profile__hero .row { display:flex; gap:8px; margin-top:6px }
 .profile__hero .actions { display:flex; gap:8px; align-items:center }
-.profile__navigation { display:flex;flex-direction: row;justify-content: space-between;align-items: flex-end;margin-bottom: 12px }
+.profile__navigation { display:flex;flex-direction: row;justify-content: space-between;align-items: flex-end;margin-bottom: 12px;gap:8px }
+.profile__navigation .btn,
+.profile__navigation .buy-btn {
+  font-size: clamp(.72rem, 2.1vw, .95rem);
+  padding: clamp(8px, 1.8vw, 12px) clamp(10px, 2.4vw, 16px);
+  line-height: 1.1;
+  min-width: 0;
+  white-space: nowrap;
+}
 .buy-btn { color: #6ec1ff;font-weight: 800;border: 1px solid #1165a3; }
 
 @media (max-width: 520px) {
-  .buy-btn { width: 30%; font-size: 0.8rem; padding: 12px; }
+  .buy-btn {
+    width: auto;
+    font-size: clamp(.68rem, 2vw, .8rem);
+    padding: clamp(7px, 1.6vw, 10px) clamp(8px, 2vw, 12px);
+  }
 }
 
 
@@ -459,7 +471,7 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
 .pairs th { text-align:left; color: var(--muted); font-weight:600 }
 .pairs td:last-child { text-align:right }
 
-.badge { display:inline-block; border-radius:999px; font-weight:800; font-size:12px; }
+.badge { display:inline-block; border-radius:999px; font-weight:800; font-size:12px; padding: 0 10px; }
 .badge.good   { background: #000; border: 1px solid var(--good); color: var(--good); }
 .badge.watch { background: #000; border: 1px solid var(--watch); color: var(--watch); }
 .badge.avoid { background: #000; border: 1px solid var(--avoid); color: var(--avoid); }
@@ -597,14 +609,7 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
 }
 
 .extraFeat {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    grid-column: 3;
-    grid-row: 2;
-    justify-self: end;
-    align-self: end;
-    align-items: flex-end;
+  grid-column: 3;
 }
 
 .profile__navigation .actions{
@@ -613,6 +618,11 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
   gap: 10px;
   flex-wrap: wrap;
   align-items: stretch;
+}
+
+.profile__navigation .actions .btn,
+.profile__navigation .actions .buy-btn {
+  flex: 0 1 auto;
 }
 
 .btn-swap-action{
@@ -640,6 +650,12 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
 @media (max-width: 640px){
   .profile__navigation .actions .btn{
     text-align: center;
+    font-size: clamp(.66rem, 1.9vw, .82rem);
+    padding: clamp(6px, 1.5vw, 10px) clamp(8px, 2vw, 12px);
+  }
+  .profile__navigation .buy-btn{
+    font-size: clamp(.66rem, 1.9vw, .82rem);
+    padding: clamp(6px, 1.5vw, 10px) clamp(8px, 2vw, 12px);
   }
   .btn-swap-action{
     padding: 12px 14px;

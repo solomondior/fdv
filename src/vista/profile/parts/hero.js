@@ -30,18 +30,24 @@ export function initHero({ token, scored, mint, onBack }) {
   wireNavigation({ onBack });
   wireCopy(mint);
 
-  // Open Library button
   try {
-    const backBox = root.querySelector(".profile__hero .backBox");
-    if (backBox) {
-      let openBtn = document.getElementById("btnOpenLibrary") || backBox.querySelector('[data-open-library]');
+    const actions = root.querySelector(".profile__navigation .actions");
+    if (actions) {
+      let openBtn = document.getElementById("btnOpenLibrary") || actions.querySelector('[data-open-library]');
       if (!openBtn) {
         openBtn = createOpenLibraryButton({ label: "Library", className: "btn btn-ghost" });
         openBtn.id = "btnOpenLibrary";
       }
-      if (openBtn.parentElement !== backBox) backBox.prepend(openBtn);
+      const shareBtn = actions.querySelector("#btnCopyMint");
+      if (openBtn.parentElement !== actions) {
+        if (shareBtn && shareBtn.nextSibling) actions.insertBefore(openBtn, shareBtn.nextSibling);
+        else if (shareBtn) actions.appendChild(openBtn);
+        else actions.prepend(openBtn);
+      }
+      openBtn.textContent = "Library";
+      openBtn.setAttribute("aria-label", "Open library");
       openBtn.className = "btn btn-ghost";
-      openBtn.style.marginBottom = "15px";
+      openBtn.style.marginBottom = "";
     }
   } catch {}
 
