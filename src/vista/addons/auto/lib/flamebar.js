@@ -269,7 +269,7 @@ function createFlamebarDom({ title, subtitle }) {
           <div class="fdv-flamebar-name" data-flamebar-name></div>
           <a class="fdv-flamebar-mint" data-flamebar-mint data-link href="#" title="Open chart"></a>
         </div>
-        <button class="btn holdCoin fdv-flamebar-hodl" data-hold-btn data-mint="" type="button">HODL</button>
+        <button class="btn holdCoin fdv-flamebar-hodl" data-hold-btn data-mint="" type="button">Hold</button>
       </div>
 
       <div class="fdv-flamebar-bar" aria-hidden="true">

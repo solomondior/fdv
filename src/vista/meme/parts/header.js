@@ -27,10 +27,11 @@ export function initHeader(createOpenLibraryButton, createOpenSearchButton, crea
 export function ensureOpenLibraryHeaderBtn(createOpenLibraryButton) {
   const header = document.querySelector('.header .container .superFeat');
   if (!header) return;
-  if (!document.getElementById('btnOpenLibrary')) {
+  let btn = document.getElementById('btnOpenLibrary');
+  if (!btn) {
     const factory = typeof createOpenLibraryButton === 'function'
       ? createOpenLibraryButton
-      : ({ label = '📚 Library', className = 'fdv-lib-btn' } = {}) => {
+      : ({ label = 'Library', className = 'fdv-lib-btn' } = {}) => {
           const b = document.createElement('button');
           b.type = 'button';
           b.className = className;
@@ -40,11 +41,14 @@ export function ensureOpenLibraryHeaderBtn(createOpenLibraryButton) {
           return b;
         };
 
-    const btn = factory({ label: '📚 Library', className: 'fdv-lib-btn' });
+    btn = factory({ label: 'Library', className: 'fdv-lib-btn' });
     btn.id = 'btnOpenLibrary';
     btn.style.marginBottom = "15px";
     header.appendChild(btn);
   }
+
+  btn.textContent = 'Library';
+  btn.setAttribute('aria-label', 'Open library');
 }
 
 export function ensureSearchHeaderBtn(createOpenSearchButton) {

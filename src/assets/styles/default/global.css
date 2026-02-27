@@ -219,6 +219,10 @@ html[data-app-ready="1"] .loader-overlay { display: none; }
   padding: 18px 22px;
 }
 
+.superFeat {
+  border-bottom: 1px solid rgba(122,222,255,.12);
+}
+
 .fdv-loader-fallback{ display:none; }
 
 .fdv-loader-cycler{
@@ -252,7 +256,6 @@ html[data-app-ready="1"] .loader-overlay { display: none; }
 }
 
 @keyframes fdvLoaderMsg{
-  /* Visible only for the first step window (prevents overlap between messages) */
   0%{ opacity:0; }
   2%{ opacity:1; }
   8%{ opacity:1; }
