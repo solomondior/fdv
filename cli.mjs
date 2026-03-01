@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const DEFAULT_BASE_URL = "https://fdv.lol";
-const DEFAULT_ENTRY = "/src/vista/widgets/auto/cli/app.js";
+const DEFAULT_ENTRY = "/src/vista/addons/auto/cli/app.js";
 
 let _os = null;
 let _path = null;
@@ -23,10 +23,9 @@ function parseBootstrapArgs(argv) {
 		const a = String(args[i] ?? "");
 		const next = () => (i + 1 < args.length ? String(args[i + 1] ?? "") : "");
 
-		// Conventional separator: everything after "--" is for the inner CLI.
+		// Accept an explicit separator but keep parsing bootstrap flags after it.
 		if (a === "--") {
-			for (let j = i + 1; j < args.length; j += 1) out.passthrough.push(args[j]);
-			break;
+			continue;
 		}
 
 		if (a === "--base-url") {
@@ -358,7 +357,7 @@ async function main() {
 	}
 
 	// Optional: splash banner file (CLI catches read failures).
-	await downloadModule("/src/vista/widgets/auto/cli/splash.gary", { optional: true });
+	await downloadModule("/src/vista/addons/auto/cli/splash.gary", { optional: true });
 
 	// Preferred: vendored web3 shim.
 	await downloadModule("/src/vendor/solana-web3/index.iife.min.js");

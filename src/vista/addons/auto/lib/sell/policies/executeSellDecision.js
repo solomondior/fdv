@@ -118,6 +118,9 @@ export function createExecuteSellDecisionPolicy({
       // PARTIAL
       if (ctx.decision.action === "sell_partial") {
       const pct = Math.min(100, Math.max(1, Number(ctx.decision.pct || 50)));
+      const preSizeUi = Math.max(0, Number(pos.sizeUi || 0));
+      const preCostSol = Math.max(0, Number(pos.costSol || 0));
+      const preHwmSol = Math.max(0, Number(pos.hwmSol || 0));
       let sellUi = pos.sizeUi * (pct / 100);
       try {
         const b = await getAtaBalanceUi(kp.publicKey.toBase58(), mint, pos.decimals);
@@ -156,30 +159,27 @@ export function createExecuteSellDecisionPolicy({
 
       log(`Sold ${sellUi.toFixed(6)} ${mint.slice(0,4)}… (${ctx.decision.reason})`);
 
-      const prevCostSol = Number(pos.costSol || 0);
-      const costSold = prevCostSol * (pct / 100);
-      const remainPct = 1 - (pct / 100);
-      pos.sizeUi = Math.max(0, pos.sizeUi - sellUi);
-      pos.costSol = Number(pos.costSol || 0) * remainPct;
-      pos.hwmSol = Number(pos.hwmSol || 0) * remainPct;
+      // Optimistic local update; final accounting is corrected from on-chain debit result below.
+      pos.sizeUi = Math.max(0, preSizeUi - sellUi);
       pos.hwmPx = Number(pos.hwmPx || 0);
       pos.lastSellAt = now();
       pos.allowRebuy = true;
       pos.lastSplitSellAt = now();
 
+      let remainUiActual = Math.max(0, Number(pos.sizeUi || 0));
       try {
         const debit = await waitForTokenDebit(kp.publicKey.toBase58(), mint, sellUi, { timeoutMs: 20000, pollMs: 350 });
-        const remainUi = Number(debit.remainUi || pos.sizeUi || 0);
-        if (remainUi > 1e-9) {
-          const estRemainSol = await quoteOutSol(mint, remainUi, pos.decimals).catch(() => 0);
+        remainUiActual = Math.max(0, Number(debit.remainUi || remainUiActual || 0));
+        if (remainUiActual > 1e-9) {
+          const estRemainSol = await quoteOutSol(mint, remainUiActual, pos.decimals).catch(() => 0);
           const minN = minSellNotionalSol();
           if (estRemainSol >= minN) {
-            pos.sizeUi = remainUi;
+            pos.sizeUi = remainUiActual;
             if (Number.isFinite(debit.decimals)) pos.decimals = debit.decimals;
             updatePosCache(kp.publicKey.toBase64 ? kp.publicKey.toBase64() : kp.publicKey.toBase58(), mint, pos.sizeUi, pos.decimals);
             updatePosCache(kp.publicKey.toBase58(), mint, pos.sizeUi, pos.decimals);
           } else {
-            try { addToDustCache(kp.publicKey.toBase58(), mint, remainUi, pos.decimals ?? 6); } catch {}
+            try { addToDustCache(kp.publicKey.toBase58(), mint, remainUiActual, pos.decimals ?? 6); } catch {}
             try { removeFromPosCache(kp.publicKey.toBase58(), mint); } catch {}
             try { clearPendingCredit(kp.publicKey.toBase58(), mint); } catch {}
             delete state.positions[mint];
@@ -192,7 +192,20 @@ export function createExecuteSellDecisionPolicy({
           try { clearPendingCredit(kp.publicKey.toBase58(), mint); } catch {}
         }
       } catch {
+        remainUiActual = Math.max(0, Number(pos.sizeUi || 0));
         updatePosCache(kp.publicKey.toBase58(), mint, pos.sizeUi, pos.decimals);
+      }
+
+      const safePreSize = Math.max(1e-12, preSizeUi);
+      const soldFrac = Math.min(1, Math.max(0, (preSizeUi - remainUiActual) / safePreSize));
+      const costSold = preCostSol * soldFrac;
+      const remainCostSol = Math.max(0, preCostSol - costSold);
+      const remainHwmSol = Math.max(0, preHwmSol * (1 - soldFrac));
+
+      if (state.positions[mint]) {
+        pos.sizeUi = remainUiActual;
+        pos.costSol = remainCostSol;
+        pos.hwmSol = remainHwmSol;
       }
       save();
 

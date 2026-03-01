@@ -717,6 +717,8 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 	let _chatMountId = "";
 	let _chatLastMint = "";
 	let _chatRefreshBtn = null;
+	let _chatUserInteracted = false;
+	let _profileOverlayStateWired = false;
 	let _isActive = false;
 
 	const _traceLast = new Map();
@@ -973,6 +975,15 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 		}
 	}
 
+	function _isProfileOverlayOpen() {
+		try {
+			const el = typeof document !== "undefined" ? document.getElementById("fdvProfileOverlay") : null;
+			return !!(el && el.isConnected);
+		} catch {
+			return false;
+		}
+	}
+
 	function _unmountChat() {
 		try {
 			if (!_chatMountId) return;
@@ -993,6 +1004,12 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 	function _syncChat(opts = null) {
 		try {
 			if (!_chatMountId) return;
+			if (!_isActive) return;
+			if (!_chatUserInteracted && !opts?.allowWithoutInteraction) return;
+			if (_isProfileOverlayOpen()) {
+				_unmountChat();
+				return;
+			}
 			try {
 				const el = typeof document !== "undefined" ? document.getElementById(_chatMountId) : null;
 				const inAuto = !!(el && el.closest && el.closest(".fdv-auto-wrap"));
@@ -1012,6 +1029,34 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 			if (!force && _chatLastMint === m) return;
 			_chatLastMint = m;
 			mountGiscus({ mint: m, allowMintThread: true, containerId: _chatMountId, theme: "dark", loading: "eager", force });
+		} catch {}
+	}
+
+	function _markChatInteracted(opts = null) {
+		try {
+			_chatUserInteracted = true;
+			if (_isActive) _syncChat({ force: !!opts?.force, allowWithoutInteraction: true });
+		} catch {}
+	}
+
+	function _wireProfileOverlayStateSync() {
+		try {
+			if (_profileOverlayStateWired) return;
+			if (typeof window === "undefined" || typeof window.addEventListener !== "function") return;
+			const onOverlayState = (ev) => {
+				try {
+					const open = !!(ev?.detail?.open ?? _isProfileOverlayOpen());
+					if (open) {
+						_unmountChat();
+						return;
+					}
+					if (_isActive && _chatUserInteracted) {
+						_syncChat({ force: true, allowWithoutInteraction: true });
+					}
+				} catch {}
+			};
+			window.addEventListener("fdv:profile-overlay-state", onOverlayState);
+			_profileOverlayStateWired = true;
 		} catch {}
 	}
 
@@ -1041,8 +1086,12 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 				if (!(_dextoolsDetailsEl?.open) && _dextoolsSummaryRowEl) _pulseJiggle(_dextoolsSummaryRowEl);
 			}
 		} catch {}
-		if (_isActive) _syncChat({ force: true });
-		else _unmountChat();
+		if (_isActive) {
+			if (_chatUserInteracted) _syncChat({ force: true });
+		} else {
+			_chatUserInteracted = false;
+			_unmountChat();
+		}
 		if (_isActive) _debouncedEdgeUiUpdate(50);
 	}
 
@@ -2283,11 +2332,29 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 					try { e?.preventDefault?.(); e?.stopPropagation?.(); } catch {}
 					try {
 						if (!_isActive) return;
+						_markChatInteracted({ force: false });
 						// Force a fresh mount for the current mint.
 						_unmountChat();
-						_syncChat({ force: true });
+						_syncChat({ force: true, allowWithoutInteraction: true });
 					} catch {}
 				});
+			}
+		} catch {}
+
+		try { _wireProfileOverlayStateSync(); } catch {}
+
+		try {
+			if (root) {
+				const markInteraction = () => {
+					try {
+						if (!_isActive) return;
+						if (_chatUserInteracted) return;
+						_markChatInteracted({ force: true });
+					} catch {}
+				};
+				root.addEventListener("pointerdown", markInteraction, { passive: true });
+				root.addEventListener("keydown", markInteraction, { passive: true });
+				root.addEventListener("input", markInteraction, { passive: true });
 			}
 		} catch {}
 
@@ -2482,7 +2549,7 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 				_debouncedEdgeUiUpdate(50);
 				try {
 					const nextChatMint = _currentChatMint();
-					if (nextChatMint && nextChatMint !== prevChatMint) _syncChat({ force: true });
+					if (_chatUserInteracted && nextChatMint && nextChatMint !== prevChatMint) _syncChat({ force: true });
 				} catch {}
 			}
 		},
@@ -2492,6 +2559,7 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 		log,
 		isRunning: () => !!state.enabled,
 		tabTitle: () => (state.mint ? _shortMint(state.mint) : "Hold"),
+		markChatInteracted: _markChatInteracted,
 		onActiveChanged,
 	};
 
@@ -2735,9 +2803,10 @@ export function initHoldWidget(container = document.body) {
 		}
 	};
 
-	const setActive = (botId) => {
+	const setActive = (botId, opts = {}) => {
 		const id = String(botId || "").trim();
 		if (!id || !bots.has(id)) return;
+		const userInitiated = !!opts?.userInitiated;
 		activeId = id;
 		for (const [bid, btn] of tabBtns.entries()) {
 			if (!btn) continue;
@@ -2748,6 +2817,9 @@ export function initHoldWidget(container = document.body) {
 			const isActive = bid === activeId;
 			panel.classList.toggle("active", isActive);
 			try { bots.get(bid)?.onActiveChanged?.(isActive); } catch {}
+		}
+		if (userInitiated) {
+			try { bots.get(activeId)?.markChatInteracted?.({ force: true }); } catch {}
 		}
 		persistAll();
 	};
@@ -2780,7 +2852,7 @@ export function initHoldWidget(container = document.body) {
 					return;
 				}
 			} catch {}
-			setActive(id);
+			setActive(id, { userInitiated: true });
 		});
 
 		const plusBtn = tabsEl.querySelector("[data-hold-add]");
@@ -2850,7 +2922,7 @@ export function initHoldWidget(container = document.body) {
 					return;
 				}
 			} catch {}
-			setActive(id);
+			setActive(id, { userInitiated: true });
 		});
 
 		const plusBtn = tabsEl.querySelector("[data-hold-add]");
@@ -2898,7 +2970,7 @@ export function initHoldWidget(container = document.body) {
 	addBtn?.addEventListener("click", () => {
 		const id = addBot({ state: DEFAULTS });
 		if (!id) return;
-		setActive(id);
+		setActive(id, { userInitiated: true });
 		persistAll();
 		refreshAddBtn();
 	});
@@ -2963,7 +3035,7 @@ export function initHoldWidget(container = document.body) {
 
 			const target = bots.get(createdId) || null;
 			try {
-				setActive(createdId);
+				setActive(createdId, { userInitiated: true });
 				persistAll();
 				refreshAddBtn();
 				recomputeRunningLed();
@@ -3003,7 +3075,7 @@ export function initHoldWidget(container = document.body) {
 			} catch {}
 
 			try {
-				setActive(target.id);
+				setActive(target.id, { userInitiated: true });
 				persistAll();
 				refreshAddBtn();
 				recomputeRunningLed();
@@ -3065,7 +3137,7 @@ export function initHoldWidget(container = document.body) {
 		} catch {}
 
 		try {
-			setActive(target.id);
+			setActive(target.id, { userInitiated: true });
 			persistAll();
 			refreshAddBtn();
 			recomputeRunningLed();

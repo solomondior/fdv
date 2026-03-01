@@ -12,6 +12,7 @@ import { initStatsAndCharts } from "./parts/stats.js";
 import { startProfileFeed, stopProfileFeed } from "./parts/feed.js";
 import { autoStartProfileMetrics } from "../../analytics/shill.js";
 import { mountProfileKpiMetrics } from "./render/kpiMetrics.js";
+import { mountGiscusDirect, unmountGiscusDirect } from "../addons/chat/chat.js";
 
 try { registerCoreWidgets(); } catch {}
 try { prewarmDefaults(); } catch {}
@@ -85,6 +86,52 @@ let lastRenderedMint = null;
 let __fdvProfileOverlay = null;
 let __fdvProfilePrevHtmlOverflow = null;
 let __fdvProfilePrevHeaderDisplay = null;
+let __fdvProfileChatMounted = false;
+const PROFILE_CHAT_MOUNT_ID = "fdvProfileChatMount";
+
+function emitProfileOverlayState(open) {
+  try {
+    const detail = { open: !!open };
+    if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+      try {
+        window.dispatchEvent(new CustomEvent("fdv:profile-overlay-state", { detail }));
+        return;
+      } catch {}
+      try {
+        const ev = new Event("fdv:profile-overlay-state");
+        try { ev.detail = detail; } catch {}
+        window.dispatchEvent(ev);
+      } catch {}
+    }
+  } catch {}
+}
+
+function mountProfileChat(overlayMount, mint) {
+  try {
+    const root = overlayMount || __fdvProfileOverlay || document;
+    const m = String(mint || "").trim();
+    if (!m) return;
+    const chatEl = root?.querySelector?.("#chatMount") || root?.querySelector?.(`#${PROFILE_CHAT_MOUNT_ID}`) || document.getElementById("chatMount");
+    if (!chatEl) return;
+
+    try {
+      if (chatEl.id !== PROFILE_CHAT_MOUNT_ID) chatEl.id = PROFILE_CHAT_MOUNT_ID;
+    } catch {}
+
+    try { unmountGiscusDirect({ containerId: PROFILE_CHAT_MOUNT_ID }); } catch {}
+
+    mountGiscusDirect({
+      mint: m,
+      containerId: PROFILE_CHAT_MOUNT_ID,
+      theme: "dark",
+      mapping: "specific",
+      loading: "eager",
+      force: true,
+      showMissingHint: true,
+    });
+    __fdvProfileChatMounted = true;
+  } catch {}
+}
 
 function setProfileOverlayZIndex(z) {
   try {
@@ -122,10 +169,17 @@ export function closeProfileOverlay() {
   if (!el) return;
 
   try { stopProfileFeed(); } catch {}
+  try {
+    if (__fdvProfileChatMounted || document.getElementById(PROFILE_CHAT_MOUNT_ID)) {
+      unmountGiscusDirect({ containerId: PROFILE_CHAT_MOUNT_ID });
+    }
+  } catch {}
+  __fdvProfileChatMounted = false;
   try { setProfileOverlayZIndex(9000); } catch {}
 
   try { el.remove(); } catch {}
   __fdvProfileOverlay = null;
+  try { emitProfileOverlayState(false); } catch {}
 
   try {
     if (__fdvProfilePrevHtmlOverflow != null) document.documentElement.style.overflow = __fdvProfilePrevHtmlOverflow;
@@ -216,6 +270,7 @@ export async function renderProfileView(input, { onBack } = {}) {
 
   const overlay = ensureProfileOverlay();
   setProfileOverlayZIndex(9000);
+  try { emitProfileOverlayState(true); } catch {}
   const overlayMount = overlay.querySelector('#fdvProfileOverlayMount') || overlay;
 
   try {
@@ -268,6 +323,7 @@ export async function renderProfileView(input, { onBack } = {}) {
   })();
 
   renderShell({ mount: overlayMount, mint, adHtml: "" });
+  try { mountProfileChat(overlayMount, mint); } catch {}
 
   // Render KPI table immediately (best-effort from localStorage),
   // so the user doesn't land on a persistent "Loading…" row.
@@ -347,13 +403,6 @@ export async function renderProfileView(input, { onBack } = {}) {
 
   runIdle(() => {
     try { widgets.mount('favorites-bind', { root: overlayMount }).catch(() => {}); } catch {}
-
-    (async () => {
-      try {
-        const { mountGiscus } = await import("../addons/chat/chat.js");
-          mountGiscus({ discussionNumber: GISCUS?.traderThreadNumber || 0, containerId: "chatMount", theme: "dark", lockId: "site-official-thread" });
-      } catch {}
-    })();
     try { autoStartProfileMetrics({ mint }); } catch {}
   });
 

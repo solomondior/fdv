@@ -205,6 +205,136 @@ function setConfig({ term, theme, containerId = "chatMount" }) {
 }
 
 const _instances = new Map(); 
+const _directInstances = new Map();
+
+function _hasGiscusFrame(containerId = "chatMount") {
+  try {
+    const mount = ensureContainer(containerId);
+    if (!mount) return false;
+    return !!mount.querySelector("iframe.giscus-frame");
+  } catch {
+    return false;
+  }
+}
+
+export function unmountGiscusDirect(opts) {
+  try {
+    const containerId = typeof opts === "string" ? opts : (opts?.containerId || "chatMount");
+    const key = String(containerId || "chatMount");
+    try {
+      const inst = _directInstances.get(key);
+      if (inst?.hintTimer) clearTimeout(inst.hintTimer);
+      if (inst?.ensureTimer) clearTimeout(inst.ensureTimer);
+    } catch {}
+    const mount = ensureContainer(key);
+    if (mount) {
+      try { _removeFdVHints(mount); } catch {}
+      mount.querySelectorAll("script[src*='giscus.app'], .giscus, iframe.giscus-frame")
+        .forEach((n) => {
+          try { n.remove(); } catch {}
+        });
+    }
+    try { _directInstances.delete(key); } catch {}
+  } catch {}
+}
+
+export function mountGiscusDirect(opts) {
+  const {
+    term,
+    mint,
+    mapping = "specific",
+    strict = false,
+    containerId = "chatMount",
+    theme,
+    loading = "eager",
+    force = false,
+    showMissingHint = true,
+  } = opts || {};
+
+  if (isGiscusDisabledByHost(containerId)) return;
+
+  const key = String(containerId || "chatMount");
+  const resolvedTerm = String((term ?? mint) || "").trim();
+  const resolvedMapping = String(mapping || "specific").trim() || "specific";
+  if (!resolvedTerm) return;
+  if (!GISCUS.repo || !GISCUS.repoId || !GISCUS.category || !GISCUS.categoryId) return;
+
+  const inst = _directInstances.get(key) || {
+    booted: false,
+    lastTerm: "",
+    lastMapping: "",
+    lastTheme: "",
+    lastLoading: "",
+    ensureTimer: 0,
+    hintTimer: 0,
+    hintKey: "",
+  };
+  _directInstances.set(key, inst);
+
+  if (!force && inst.booted && inst.lastTerm === resolvedTerm && inst.lastMapping === resolvedMapping && inst.lastTheme === String(theme || GISCUS.theme || "dark") && inst.lastLoading === String(loading || "eager") && _hasGiscusFrame(key)) {
+    return;
+  }
+
+  injectScript({
+    term: resolvedTerm,
+    mint: resolvedTerm,
+    mapping: resolvedMapping,
+    strict: !!strict,
+    containerId: key,
+    theme,
+    loading,
+  });
+
+  inst.booted = true;
+  inst.lastTerm = resolvedTerm;
+  inst.lastMapping = resolvedMapping;
+  inst.lastTheme = String(theme || GISCUS.theme || "dark");
+  inst.lastLoading = String(loading || "eager");
+
+  try {
+    if (inst.ensureTimer) clearTimeout(inst.ensureTimer);
+    inst.ensureTimer = setTimeout(() => {
+      try {
+        if (_hasGiscusFrame(key)) return;
+        injectScript({
+          term: resolvedTerm,
+          mint: resolvedTerm,
+          mapping: resolvedMapping,
+          strict: !!strict,
+          containerId: key,
+          theme,
+          loading,
+        });
+      } catch {}
+    }, 2500);
+  } catch {}
+
+  if (showMissingHint && (resolvedMapping === "specific" || resolvedMapping === "title" || resolvedMapping === "pathname" || resolvedMapping === "url")) {
+    try {
+      const repo = String(GISCUS?.repo || "").trim();
+      const cat = String(GISCUS?.category || "").trim();
+      const hintKey = `${resolvedMapping}|${resolvedTerm}|${repo}|${cat}`;
+      inst.hintKey = hintKey;
+      if (inst.hintTimer) clearTimeout(inst.hintTimer);
+      inst.hintTimer = setTimeout(async () => {
+        try {
+          const mount = ensureContainer(key);
+          if (!mount) return;
+          if (_hasGiscusFrame(key)) {
+            _removeFdVHints(mount);
+            return;
+          }
+          const cached = _probeCacheGet(hintKey);
+          const probed = cached || await _probeDiscussionExists({ repo, category: cat, term: resolvedTerm, number: 0, strict: !!strict });
+          try { _probeCacheSet(hintKey, probed || { ok: false, unknown: true }); } catch {}
+          if (probed?.ok && probed?.missing) {
+            _setMissingDiscussionHint({ mount, repo, term: resolvedTerm, number: 0, mapping: resolvedMapping });
+          }
+        } catch {}
+      }, 1300);
+    } catch {}
+  }
+}
 
 export function unmountGiscus(opts) {
   try {
