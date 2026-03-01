@@ -43,7 +43,6 @@ export function ensureOpenLibraryHeaderBtn(createOpenLibraryButton) {
 
     btn = factory({ label: 'Library', className: 'fdv-lib-btn' });
     btn.id = 'btnOpenLibrary';
-    btn.style.marginBottom = "15px";
     header.appendChild(btn);
   }
 
@@ -57,7 +56,7 @@ export function ensureSearchHeaderBtn(createOpenSearchButton) {
   if (!document.getElementById('btnOpenSearch')) {
     const factory = typeof createOpenSearchButton === "function"
       ? createOpenSearchButton
-      : ({ label = '🔎 Search', className = 'fdv-search-btn' } = {}) => {
+      : ({ label = 'Search', className = 'fdv-search-btn' } = {}) => {
           const b = document.createElement("button");
           b.type = "button";
           b.className = className;
@@ -67,10 +66,8 @@ export function ensureSearchHeaderBtn(createOpenSearchButton) {
           return b;
         };
 
-    const btn = factory({ label: 'Search 🔎', className: 'fdv-lib-btn fdv-search-btn' });
+    const btn = factory({ label: 'Search', className: 'fdv-lib-btn fdv-search-btn' });
     btn.id = 'btnOpenSearch';
-    btn.style.marginLeft = "8px";
-    btn.style.marginBottom = "15px";
     btn.setAttribute('data-search-open', '');
     btn.setAttribute('aria-label', 'Open search');
     header.appendChild(btn);
@@ -91,8 +88,6 @@ export function ensureCoachingHeaderLink() {
   a.setAttribute('aria-label', 'Open 1:1 coaching');
   a.setAttribute('title', '1:1 coaching');
   a.style.color = '#fff';
-  a.style.marginLeft = '8px';
-  a.style.marginBottom = '15px';
   a.style.textDecoration = 'none';
 
   const searchBtn = document.getElementById('btnOpenSearch');
