@@ -281,3 +281,4 @@ fdv.lol is open-source and community-driven. You can help by:
 
 ⚡ Together we can make fdv.lol the fastest, simplest, and most trusted memecoin radar on Solana.
 
+fix(trader): correct partial-sell cost basis to prevent inflated PnL after exits; unmount hold giscus on profile navigation and remount only on active user intent.
