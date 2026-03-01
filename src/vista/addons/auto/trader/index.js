@@ -11468,6 +11468,7 @@ export function initTraderWidget(container = document.body) {
       <button class="btn tool-btn fdv-hidden" data-auto-copy>Replace me with AI feature</button>
       <button class="btn tool-btn" data-auto-snapshot title="Download latest sell snapshot">Snapshot</button>
       <button class="btn tool-btn" data-auto-unwind>Return</button>
+      <a class="btn tool-btn" href="#" data-auto-fullscreen title="Open fullscreen">Screen</a>
       <div data-auto-unwind-menu class="fdv-modal-backdrop">
         <div class="fdv-modal fdv-unwind-modal" data-auto-unwind-modal role="dialog" aria-modal="true" aria-label="Confirm Return">
           <div class="fdv-modal-header">
@@ -11510,7 +11511,6 @@ export function initTraderWidget(container = document.body) {
     <div class="fdv-actions-left">
         <button class="btn" data-auto-help title="How the bot works">Help</button>
         <button class="btn" data-auto-log-copy title="Copy log">Log</button>
-      <a class="btn" href="#" data-auto-fullscreen title="Open fullscreen">FS</a>
         <!-- TODO: fix help modal positioning -->
         ${ getAutoHelpModalHtml() }
     </div>
