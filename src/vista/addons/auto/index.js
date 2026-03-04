@@ -9,6 +9,12 @@ import {
   getAutoTraderState,
   saveAutoTraderState,
 } from './trader/index.js';
+import { initOverviewWidget } from './overview.js';
+import { initWalletPnl } from './wallet-pnl/index.js';
+import { initHeatmap } from '../heatmap/index.js';
+import { isTrainingCaptureEnabled, initTraining } from '../training/index.js';
+import { initMultiWallet } from './multi-wallet/index.js';
+import { initBacktester } from '../backtester/page.js';
 
 import { importFromUrl } from '../../../utils/netImport.js';
 import { ensureAutoLed } from './lib/led.js';
@@ -119,15 +125,29 @@ export function initAutoWidget(container = document.body) {
     <div class="fdv-auto-head"></div>
     <div class="fdv-flamebar-slot" data-flamebar-slot></div>
     <div data-auto-firsthelp-slot></div>
-    <div class="fdv-tabs" style="display:flex; margin-bottom: 25px; gap:8px; overflow: scroll;">
-      <button class="fdv-tab-btn active" data-main-tab="auto">Auto</button>
-      <button class="fdv-tab-btn" data-main-tab="follow">Follow</button>
-      <button class="fdv-tab-btn" data-main-tab="sniper">Sentry</button>
-      <button class="fdv-tab-btn" data-main-tab="hold">Hold</button>
-      <button class="fdv-tab-btn hidden" data-main-tab="volume" disabled>Volume</button>
+    <div class="fdv-tabs-outer">
+      <div class="fdv-tabs fdv-tabs-primary">
+        <button class="fdv-tab-btn active" data-main-tab="overview">Overview</button>
+        <button class="fdv-tab-btn" data-main-tab="auto">Auto</button>
+        <button class="fdv-tab-btn" data-main-tab="follow">Follow</button>
+        <button class="fdv-tab-btn" data-main-tab="sniper">Sentry</button>
+        <button class="fdv-tab-btn" data-main-tab="hold">Hold</button>
+      </div>
+      <div class="fdv-tabs fdv-tabs-secondary">
+        <button class="fdv-tab-btn hidden" data-main-tab="volume" disabled>Volume</button>
+        <button class="fdv-tab-btn" data-main-tab="wallet">Wallet</button>
+        <button class="fdv-tab-btn" data-main-tab="heatmap">Heatmap</button>
+        <button class="fdv-tab-btn" data-main-tab="multi-wallet">Multi-Wallet</button>
+        <button class="fdv-tab-btn" data-main-tab="backtester">Backtest</button>
+        <button class="fdv-tab-btn fdv-tab-train hidden" data-main-tab="training">Train</button>
+      </div>
     </div>
 
-    <div data-main-tab-panel="auto" class="tab-panel active">
+    <div data-main-tab-panel="overview" class="tab-panel active">
+      <div id="overview-container"></div>
+    </div>
+
+    <div data-main-tab-panel="auto" class="tab-panel" style="display:none;">
       <div id="trader-container"></div>
     </div>
 
@@ -147,9 +167,33 @@ export function initAutoWidget(container = document.body) {
       <div id="hold-container"></div>
     </div>
 
-    <div class="fdv-bot-footer" style="display:flex;justify-content:space-between;margin-top:12px; font-size:12px; text-align:right; opacity:0.6;">
+    <div data-main-tab-panel="wallet" class="tab-panel" style="display:none;">
+      <div id="wallet-pnl-container"></div>
+    </div>
+
+    <div data-main-tab-panel="heatmap" class="tab-panel" style="display:none;">
+      <div id="heatmap-container"></div>
+    </div>
+
+    <div data-main-tab-panel="training" class="tab-panel" style="display:none;">
+      <div id="training-container"></div>
+    </div>
+
+    <div data-main-tab-panel="multi-wallet" class="tab-panel" style="display:none;">
+      <div id="multi-wallet-container"></div>
+    </div>
+
+    <div data-main-tab-panel="backtester" class="tab-panel" style="display:none;">
+      <div id="backtester-container"></div>
+    </div>
+
+    <div class="fdv-bot-footer" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px; font-size:12px; text-align:right; opacity:0.6;">
       <a href="https://t.me/fdvlolgroup" target="_blank" data-auto-help-tg>t.me/fdvlolgroup</a>
-      <span>Version: 0.0.8.0</span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <button id="fdv-reconcile-btn" class="fdv-reconcile-btn" type="button" title="Force-sync pending credits now">Reconcile</button>
+        <span id="fdv-reconcile-status" class="fdv-reconcile-status"></span>
+        <span>Version: 0.0.8.0</span>
+      </span>
     </div>
   `;
 
@@ -172,12 +216,66 @@ export function initAutoWidget(container = document.body) {
 
   try { ensureAutoLed(); } catch {}
 
+  try {
+    const _cleanupOverview = initOverviewWidget(body.querySelector('#overview-container'));
+    // Clean up the polling interval if the panel is ever removed from DOM.
+    if (typeof _cleanupOverview === 'function') {
+      new MutationObserver((_, obs) => {
+        if (!wrap.isConnected) { obs.disconnect(); try { _cleanupOverview(); } catch {} }
+      }).observe(document.body, { childList: true, subtree: false });
+    }
+  } catch {}
   initTraderWidget(body.querySelector('#trader-container'));
   initVolumeWidget(body.querySelector('#volume-container'));
   initFollowWidget(body.querySelector('#follow-container'));
   initSniperWidget(body.querySelector('#sniper-container'));
   const holdApi = initHoldWidget(body.querySelector('#hold-container'));
   try { window._fdvHoldWidgetApi = holdApi || null; } catch {}
+  try { initWalletPnl(body.querySelector('#wallet-pnl-container')); } catch {}
+  try { initHeatmap(body.querySelector('#heatmap-container')); } catch {}
+
+  // Training tab — only reveal when capture is enabled
+  try {
+    if (isTrainingCaptureEnabled()) {
+      const trainTabBtn = body.querySelector('.fdv-tab-train');
+      if (trainTabBtn) trainTabBtn.classList.remove('hidden');
+      initTraining(body.querySelector('#training-container')).catch(() => {});
+    }
+  } catch {}
+
+  try { initMultiWallet(body.querySelector('#multi-wallet-container')); } catch {}
+  try { initBacktester(body.querySelector('#backtester-container')).catch(() => {}); } catch {}
+
+  // Wire reconcile button — dispatches fdv:reconcile-now and shows result.
+  try {
+    const reconcileBtn = body.querySelector('#fdv-reconcile-btn');
+    const reconcileStatus = body.querySelector('#fdv-reconcile-status');
+    if (reconcileBtn) {
+      reconcileBtn.addEventListener('click', () => {
+        reconcileBtn.disabled = true;
+        reconcileBtn.textContent = 'Reconciling…';
+        if (reconcileStatus) reconcileStatus.textContent = '';
+        window.dispatchEvent(new CustomEvent('fdv:reconcile-now'));
+        // Safety: re-enable after 15 s in case the result event never fires.
+        setTimeout(() => {
+          reconcileBtn.disabled = false;
+          reconcileBtn.textContent = 'Reconcile';
+        }, 15_000);
+      });
+      window.addEventListener('fdv:reconcile-result', (e) => {
+        reconcileBtn.disabled = false;
+        reconcileBtn.textContent = 'Reconcile';
+        if (!reconcileStatus) return;
+        const settled = Number(e?.detail?.settled ?? 0);
+        reconcileStatus.textContent = settled > 0 ? `+${settled} settled` : 'Up to date';
+        reconcileStatus.className = 'fdv-reconcile-status ok';
+        setTimeout(() => {
+          reconcileStatus.textContent = '';
+          reconcileStatus.className = 'fdv-reconcile-status';
+        }, 4000);
+      });
+    }
+  } catch {}
 
   const firstHelpSlot = body.querySelector('[data-auto-firsthelp-slot]');
   const maybeShowFirstRunHelpInline = () => {
@@ -209,7 +307,7 @@ export function initAutoWidget(container = document.body) {
       activateMainTab(b.getAttribute('data-main-tab'));
     }),
   );
-  activateMainTab('auto');
+  activateMainTab('overview');
 
   function _parseJsonAttr(str) {
     if (!str) return null;

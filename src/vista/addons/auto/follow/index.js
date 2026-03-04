@@ -3051,6 +3051,18 @@ async function stopFollowBot() {
 	}
 }
 
+/**
+ * Programmatically set the Follow Bot's target wallet.
+ * Safe to call before or after initFollowWidget — state is always persisted.
+ */
+export function setTargetWallet(address) {
+	const addr = String(address || '').trim();
+	state.targetWallet = addr;
+	if (targetEl) targetEl.value = addr;
+	saveState();
+	try { updateUI(); } catch {}
+}
+
 export function initFollowWidget(container = document.body) {
 	loadState();
 	try {

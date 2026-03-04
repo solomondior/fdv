@@ -94,9 +94,20 @@ export const TRAINING_CAPTURE = {
   includeBad: toBool(_TRAIN_CAPTURE_INCLUDE_BAD, false),
 };
 
-export const CACHE_TTL_MS = 90_000;
+// Per-source cache TTLs (ms). All swrFetch / getJSON callers should import from here.
+export const CACHE_TTL = {
+  dexscreener_search: 2 * 60_000,   // 2m  — keyword search results
+  dexscreener_token:  10 * 60_000,  // 10m — token detail / profile page
+  jupiter:            15_000,        // 15s — trending tokens feed
+  birdeye:            2 * 60_000,    // 2m  — birdeye search
+  coingecko:          5 * 60_000,    // 5m  — gecko cooldown window
+  rpc_stale:          5 * 60_000,    // 5m  — stale RPC mint-cache fallback
+  default:            15_000,        // 15s — fetcher.js fallback
+};
+// Keep the flat alias for the legacy localStorage cache in tools.js
+export const CACHE_TTL_MS = CACHE_TTL.default;
 export const CACHE_KEY = 'sol-meme-ultralite-cache-v1';
-export const MAX_CARDS = 21;
+export const MAX_CARDS = 50;
 export const MEME_REGEX = /(bonk|wif|dog|inu|pepe|cat|meme|ponk|ponke|samo|pipi|bodi|boden|beer|mog|pop|paws|purry|purr|kitty|kit|meow|woof|hamster|frog|toad|snek|sponge|bob|smurf|dino|monke|monkey|ape|corgi|floki|elon|keem|pump|dump|poo|poop|turd|goat|degen|baby|wife|husband|shib|shiba|giga|sigma|skib|rizz|reno)/i;
 export const RANK_WEIGHTS = { volume:0.35, liquidity:0.25, momentum:0.20, activity:0.20 };
 
@@ -224,7 +235,7 @@ export const PRIVACY = `
   <h3>Third parties</h3>
   <p>Depending on features used, you may interact with Solana RPC providers, Jupiter, market data providers (e.g., DEXScreener), Cloudflare Turnstile, and embedded content (e.g., YouTube/Giscus). These services may collect data under their own policies.</p>
 
-  <p>Full policy: <a href="https://fdv.lol/onboard/policy.html" target="_blank" rel="noreferrer">fdv.lol/onboard/policy.html</a></p>
+  <p>Full policy: <a href="/onboard/policy.html" target="_blank" rel="noreferrer">/onboard/policy.html</a></p>
 `;
 
 
@@ -246,7 +257,7 @@ export const TOS = `
   <h3>Warranty / liability</h3>
   <p>Provided “as is” and “as available” without warranty. Crypto is risky and automation amplifies mistakes; we do not guarantee accuracy, uptime, or outcomes.</p>
 
-  <p>Full policy: <a href="https://fdv.lol/onboard/policy.html" target="_blank" rel="noreferrer">fdv.lol/onboard/policy.html</a></p>
+  <p>Full policy: <a href="/onboard/policy.html" target="_blank" rel="noreferrer">/onboard/policy.html</a></p>
 `;
 
 export const AGREEMENT = `
@@ -259,5 +270,5 @@ export const AGREEMENT = `
   <h3>Limitations</h3>
   <p>You accept the risks of using crypto software and automation. We are not responsible for trading outcomes, lost funds, or third-party actions/services.</p>
 
-  <p>Full policy: <a href="https://fdv.lol/onboard/policy.html" target="_blank" rel="noreferrer">fdv.lol/onboard/policy.html</a></p>
+  <p>Full policy: <a href="/onboard/policy.html" target="_blank" rel="noreferrer">/onboard/policy.html</a></p>
 `;

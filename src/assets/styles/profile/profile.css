@@ -126,7 +126,7 @@
   .table-scroll .pairs { min-width: 720px; }
 }
 
-.pairs tbody tr:hover td { background: rgba(123,241,255,.04); }
+.pairs tbody tr:hover td { background: rgba(192,132,252,.04); }
 
 .profile__hero { display:grid; grid-template-columns: 92px 1fr auto; gap:12px; align-items:center; margin-bottom: 12px }
 .profile__hero .media { width:92px; height:92px; border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); overflow:hidden; display:flex; align-items:center; justify-content:center }
@@ -318,7 +318,7 @@
   filter: drop-shadow(0 0 0 rgba(0,0,0,0)); 
 }
 
-.stat .k .status.ok   { color: #1aff7a; }  
+.stat .k .status.ok   { color: #a855f7; }  
 .stat .k .status.warn { color: #ff4d6d; }
 
 @media (max-width: 520px) {
@@ -328,7 +328,7 @@
 
 .profile__grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap:12px }
 .profile__card { background: var(--bg); border:1px solid rgba(122,222,255,.10); padding:12px; border-radius:14px }
-svg.bars rect { fill: rgba(123,241,255,.8) }
+svg.bars rect { fill: rgba(192,132,252,.8) }
 
 .reco {
   background: var(--bg);
@@ -389,15 +389,15 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
 .reco__bar {
   position: relative;
   height: 10px;
-  background: rgba(123,241,255,.08);
-  border: 1px solid rgba(123,241,255,.12);
+  background: rgba(192,132,252,.08);
+  border: 1px solid rgba(192,132,252,.12);
   border-radius: 999px;
   overflow: hidden;
 }
 .reco__bar__fill {
   height: 100%;
-  background: linear-gradient(90deg, rgba(26,255,213,.65), rgba(123,241,255,.85));
-  box-shadow: 0 0 10px rgba(26,255,213,.25) inset;
+  background: linear-gradient(90deg, rgba(168,85,247,.65), rgba(192,132,252,.85));
+  box-shadow: 0 0 10px rgba(168,85,247,.25) inset;
   width: 0%;
   transition: width .25s ease;
 }
@@ -431,7 +431,7 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
 }
 .reco__kpi {
   background: rgba(255,255,255,.02);
-  border: 1px dashed rgba(123,241,255,.12);
+  border: 1px dashed rgba(192,132,252,.12);
   border-radius: 10px;
   padding: 8px;
 }
@@ -443,11 +443,11 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 12px;
-  border: 1px solid rgba(123,241,255,.18);
+  border: 1px solid rgba(192,132,252,.18);
 }
 .chip.good { background: rgba(26,255,122,.12); }
 .chip.bad  { background: rgba(255,77,109,.12); }
-.chip.neutral { background: rgba(123,241,255,.10); }
+.chip.neutral { background: rgba(192,132,252,.10); }
 
 .reco__whywrap { margin-top: 6px; }
 .reco__why {
@@ -457,7 +457,7 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
 }
 .reco__why li { margin: 4px 0; }
 
-.reco[data-reco="good"]  { border-color: #1aff7a; }
+.reco[data-reco="good"]  { border-color: #a855f7; }
 .reco[data-reco="watch"] { border-color: #ffb200; }
 .reco[data-reco="avoid"] { border-color: rgba(255,77,109,.25); }
 
@@ -479,14 +479,14 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
 .pill { display:inline-block; font-weight:700; font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid rgba(122,222,255,.18) }
 .pill.up { background: rgba(26,255,122,.12) }
 .pill.down { background: rgba(255,77,109,.12) }
-.pill.neutral { background: rgba(123,241,255,.10) }
+.pill.neutral { background: rgba(192,132,252,.10) }
 
-.link { color: var(--neon2); text-decoration:none; border-bottom:1px dotted rgba(123,241,255,.3); padding-bottom:1px }
+.link { color: var(--neon2); text-decoration:none; border-bottom:1px dotted rgba(192,132,252,.3); padding-bottom:1px }
 .link:hover { border-bottom-style:solid }
 
 .livePrice{ margin-top: 12px; padding: 8px; border-radius: 12px;
   background: #06090f; border:1px solid rgba(122,222,255,.10);
-  box-shadow: inset 0 0 0 1px rgba(26,255,213,.04);
+  box-shadow: inset 0 0 0 1px rgba(168,85,247,.04);
 }
 .livePrice__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
 .livePrice__head .ttl{ font-weight:600; opacity:.9 }
@@ -495,14 +495,14 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
 .livePrice__svg{ width:100%; height:140px; display:block; }
 .livePrice__line{
   fill:none;
-  stroke: var(--neon, #18eac7);
+  stroke: var(--neon, #a855f7);
   stroke-width:2;
   vector-effect:non-scaling-stroke;
-  filter: drop-shadow(0 0 8px color-mix(in oklab, var(--neon,#18eac7) 35%, transparent));
+  filter: drop-shadow(0 0 8px color-mix(in oklab, var(--neon,#a855f7) 35%, transparent));
   will-change: stroke-dashoffset;
   transition: stroke-dashoffset .6s ease, d .15s ease;
 }
-.livePrice__area{ fill: color-mix(in oklab, var(--neon,#18eac7) 16%, transparent); transition: d .15s ease; }
+.livePrice__area{ fill: color-mix(in oklab, var(--neon,#a855f7) 16%, transparent); transition: d .15s ease; }
 
 /* .btn { border-radius:10px; color: var(--text); cursor:pointer } */
 .btn-ghost { background: transparent }
@@ -524,7 +524,7 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
 
 .profile__hero .btn--static{
   border: 1px solid rgba(122,222,255,.25);
-  background: rgba(26,255,213,.08);
+  background: rgba(168,85,247,.08);
   color: var(--text);
   border-radius: 10px;
   padding: 8px 12px;
@@ -549,7 +549,7 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
   border-radius: 999px;
   border: 1px solid rgba(122,222,255,.25);
   background:
-    radial-gradient(120% 120% at 100% 0%, rgba(38,206,255,.20), rgba(26,255,213,.10) 60%, rgba(26,255,213,.06) 100%),
+    radial-gradient(120% 120% at 100% 0%, rgba(168,85,247,.20), rgba(168,85,247,.10) 60%, rgba(168,85,247,.06) 100%),
     rgba(8,14,24,.9);
   color: var(--text, #e2e8f0);
 
@@ -631,7 +631,7 @@ svg.bars rect { fill: rgba(123,241,255,.8) }
   letter-spacing: .2px;
   border: 1px solid rgba(122,222,255,.25);
   background:
-    radial-gradient(120% 120% at 100% 0%, rgba(38,206,255,.20), rgba(26,255,213,.10) 60%, rgba(26,255,213,.06) 100%),
+    radial-gradient(120% 120% at 100% 0%, rgba(168,85,247,.20), rgba(168,85,247,.10) 60%, rgba(168,85,247,.06) 100%),
     rgba(8,14,24,.9);
   color: var(--text, #e2e8f0);
   /* box-shadow: 0 8px 24px rgba(15,185,255,.18), inset 0 0 0 1px rgba(122,222,255,.10); */

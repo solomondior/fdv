@@ -1,5 +1,6 @@
 import {
-  MEME_KEYWORDS         
+  MEME_KEYWORDS,
+  CACHE_TTL,
 } from '../config/env.js';
 import { fetchJsonNoThrow } from '../core/tools.js';
 import {
@@ -78,6 +79,16 @@ function dedupeMerge(existing, incoming) {
   };
 }
 
+function _emitSourceHealth(source, degraded) {
+  try {
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('fdv:source-health', {
+        detail: { source, degraded },
+      }));
+    }
+  } catch {}
+}
+
 class HealthMonitor {
   constructor({
     degradeAfter = 3,     
@@ -109,14 +120,17 @@ class HealthMonitor {
   }
   onSuccess(name) {
     const s = this._get(name);
+    const wasDegraded = this.isDegraded(name);
     this._decay(s);
     s.okCount += 1;
     s.failCount = Math.max(0, s.failCount - 1);
     s.lastChange = this._now();
-    if (s.okCount >= 2) s.degradedUntil = 0; 
+    if (s.okCount >= 2) s.degradedUntil = 0;
+    if (wasDegraded && !this.isDegraded(name)) _emitSourceHealth(name, false);
   }
   onFailure(name) {
     const s = this._get(name);
+    const wasDegraded = this.isDegraded(name);
     this._decay(s);
     s.failCount += 1;
     s.okCount = Math.max(0, s.okCount - 1);
@@ -124,6 +138,7 @@ class HealthMonitor {
     if (s.failCount >= this.degradeAfter) {
       s.degradedUntil = this._now() + this.coolOffMs;
     }
+    if (!wasDegraded && this.isDegraded(name)) _emitSourceHealth(name, true);
   }
   isDegraded(name) {
     const s = this._get(name);
@@ -161,7 +176,7 @@ async function provDexscreenerSearch(query, { signal, limit = 12 } = {}) {
 
 let _geckoFailUntil = 0;
 
-const GECKO_COOLDOWN_MS = 5 * 60_000;
+const GECKO_COOLDOWN_MS = CACHE_TTL.coingecko;
 
 
 function geckoInCooldown() {

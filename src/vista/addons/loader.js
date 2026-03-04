@@ -519,6 +519,52 @@ export function registerCoreWidgets() {
     once: true,
   });
 
+  widgets.register('wallet-pnl', {
+    importer: () => import('./auto/wallet-pnl/index.js'),
+    mount: ({ mod, host }) => {
+      const h = host || document.body;
+      mod.initWalletPnl(h);
+    },
+    once: true,
+  });
+
+  widgets.register('heatmap', {
+    importer: () => import('./heatmap/index.js'),
+    mount: ({ mod, host }) => {
+      const h = host || document.body;
+      mod.initHeatmap(h);
+    },
+    once: true,
+  });
+
+  widgets.register('training', {
+    importer: () => import('./training/index.js'),
+    mount: ({ mod, host }) => {
+      if (!mod.isTrainingCaptureEnabled()) return;
+      const h = host || document.body;
+      mod.initTraining(h).catch(() => {});
+    },
+    once: true,
+  });
+
+  widgets.register('multi-wallet', {
+    importer: () => import('./auto/multi-wallet/index.js'),
+    mount: ({ mod, host }) => {
+      const h = host || document.body;
+      mod.initMultiWallet(h);
+    },
+    once: true,
+  });
+
+  widgets.register('backtester', {
+    importer: () => import('./backtester/page.js'),
+    mount: ({ mod, host }) => {
+      const h = host || document.body;
+      mod.initBacktester(h).catch(() => {});
+    },
+    once: true,
+  });
+
   // Ensure the Auto area isn't empty while its heavy module loads.
   ensureAutoPlaceholder();
 

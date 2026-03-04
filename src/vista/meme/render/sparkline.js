@@ -23,7 +23,7 @@ export function sparklineSVG(changes, { w = 120, h = 52 } = {}) {
   const d = segs.join('');
 
   const goodTrend = vals[n - 1] > vals[0];
-  const strokeColor = goodTrend ? "var(--buy,#1aff7a)" : "var(--fdv-primary,#00c2a8)";
+  const strokeColor = goodTrend ? "var(--buy,#a855f7)" : "var(--fdv-primary,#7c3aed)";
   const midY = y(0);
 
   const reducedMotion = (() => {
@@ -38,14 +38,14 @@ export function sparklineSVG(changes, { w = 120, h = 52 } = {}) {
   const gap = Math.max(80, Math.round(w * 2.2));
   const sweep = dash + gap;
   const flare = (reducedMotion || !goodTrend) ? '' : `
-  <path d="${d}" stroke="rgba(123,215,255,.85)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"
+  <path d="${d}" stroke="rgba(168,85,247,.85)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"
         opacity=".65" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="0">
     <animate attributeName="stroke-dashoffset" values="0;-${sweep}" dur="1.35s" repeatCount="indefinite" />
   </path>`;
 
   return `
 <svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" preserveAspectRatio="none" aria-hidden="true">
-  <path d="M0 ${midY} H ${w}" stroke="rgba(123,215,255,.25)" stroke-width="1" fill="none"/>
+  <path d="M0 ${midY} H ${w}" stroke="rgba(168,85,247,.25)" stroke-width="1" fill="none"/>
   <path d="${d}" stroke="${strokeColor}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   ${flare}
 </svg>`;
@@ -72,7 +72,7 @@ function _computePathData(vals, w, h) {
   }
   const d = segs.join('');
   const midY = y(0);
-  const strokeColor = vals[n - 1] > vals[0] ? "var(--buy,#1aff7a)" : "var(--fdv-primary,#00c2a8)";
+  const strokeColor = vals[n - 1] > vals[0] ? "var(--buy,#a855f7)" : "var(--fdv-primary,#7c3aed)";
   return { d, midY, strokeColor };
 }
 
@@ -115,7 +115,7 @@ export function mountSparkline(container, { w = 120, h = 32 } = {}) {
 
     const base = _elNS('path');
     base.setAttribute('d', `M0 ${midY} H ${w}`);
-    base.setAttribute('stroke', 'rgba(123,215,255,.25)');
+    base.setAttribute('stroke', 'rgba(168,85,247,.25)');
     base.setAttribute('stroke-width', '1');
     base.setAttribute('fill', 'none');
 
@@ -133,7 +133,7 @@ export function mountSparkline(container, { w = 120, h = 32 } = {}) {
     if (goodTrend) {
       const flare = _elNS('path');
       flare.setAttribute('d', d);
-      flare.setAttribute('stroke', 'rgba(123,215,255,.85)');
+      flare.setAttribute('stroke', 'rgba(168,85,247,.85)');
       flare.setAttribute('stroke-width', '4');
       flare.setAttribute('fill', 'none');
       flare.setAttribute('stroke-linecap', 'round');

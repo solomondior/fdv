@@ -10,8 +10,8 @@ const _failCounts = new Map();
 const _blocked = new Set();
 const MAX_FAILS_PER_CID = 6;
 
-const SILENCE_STORM_WINDOW_MS = 2000;
-const SILENCE_STORM_THRESHOLD = 6; 
+const SILENCE_STORM_WINDOW_MS = 10_000;
+const SILENCE_STORM_THRESHOLD = 30;
 let __ipfsErrTimes = [];
 
 function _isDevHost() {

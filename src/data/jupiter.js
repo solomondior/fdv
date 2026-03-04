@@ -1,5 +1,5 @@
 import { getJSON } from '../core/tools.js'
-import { JUP_API_BASE, JUP_API_KEY } from '../config/env.js'
+import { JUP_API_BASE, JUP_API_KEY, CACHE_TTL } from '../config/env.js'
 
 const JUP_TRENDING_BASE = `${String(JUP_API_BASE || "https://api.jup.ag").replace(/\/+$/, "")}/tokens/v2/toptrending`;
 
@@ -229,6 +229,7 @@ export async function fetchJupiterTrendingModels({ window = '5m', limit = 50, si
   const url = `${JUP_TRENDING_BASE}/${encodeURIComponent(window)}?limit=${encodeURIComponent(limit)}`;
   const data = await getJSON(url, {
     signal,
+    ttl: CACHE_TTL.jupiter,
     timeout: 15_000,
     headers: { accept: 'application/json', 'x-api-key': String(apiKey || "").trim() },
   });

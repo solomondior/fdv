@@ -1,3 +1,40 @@
+// Track degraded sources and show a warning pill in the header.
+// Listens for 'fdv:source-health' events emitted by feeds.js HealthMonitor.
+const _degradedSources = new Set();
+
+function _syncHealthPill() {
+  try {
+    let pill = document.getElementById('fdvSourceHealthPill');
+    if (_degradedSources.size === 0) {
+      if (pill) pill.remove();
+      return;
+    }
+    const label = `⚠ ${[..._degradedSources].join(', ')} degraded`;
+    if (!pill) {
+      pill = document.createElement('span');
+      pill.id = 'fdvSourceHealthPill';
+      pill.className = 'fdv-source-health-pill';
+      const header = document.querySelector('.header .container .superFeat') ||
+                     document.getElementById('hdrToolsRow') ||
+                     document.body;
+      header.appendChild(pill);
+    }
+    pill.textContent = label;
+  } catch {}
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('fdv:source-health', (e) => {
+    try {
+      const { source, degraded } = e.detail || {};
+      if (!source) return;
+      if (degraded) _degradedSources.add(source);
+      else _degradedSources.delete(source);
+      _syncHealthPill();
+    } catch {}
+  });
+}
+
 export function initHeader(createOpenLibraryButton, createOpenSearchButton, createOpenFavboardButton) {
   let strip = document.getElementById('hdrTools');
   if (!strip) {
@@ -82,7 +119,7 @@ export function ensureCoachingHeaderLink() {
   const a = document.createElement('a');
   a.id = 'btnCoaching';
   a.className = 'fdv-lib-btn fdv-coaching-btn';
-  a.href = 'https://fdv.lol/onboard/';
+  a.href = '/onboard/';
   a.textContent = 'Coaching';
   a.setAttribute('role', 'button');
   a.setAttribute('aria-label', 'Open 1:1 coaching');

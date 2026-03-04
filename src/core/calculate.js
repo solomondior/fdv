@@ -60,7 +60,7 @@ export function bestPerToken(pairs, {relax=false}={}) {
   return [...bucket.values()];
 }
 
-export function scoreAndRecommendOne(r) {
+export function scoreAndRecommendOne(r, { weights } = {}) {
   const N = (x, d = 0) => Number.isFinite(+x) ? +x : d;
   const pick = (...cands) => cands.find(v => Number.isFinite(+v));
 
@@ -126,11 +126,12 @@ export function scoreAndRecommendOne(r) {
   const A_LOW = 30, A_HIGH = 200;
   const nAct = clamp((txPerM - A_LOW) / (A_HIGH - A_LOW), 0, 1);
 
+  const W = weights ?? RANK_WEIGHTS;
   let score =
-      RANK_WEIGHTS.volume    * nVol +
-      RANK_WEIGHTS.liquidity * nLiq +
-      RANK_WEIGHTS.momentum  * nMom +
-      RANK_WEIGHTS.activity  * nAct;
+      W.volume    * nVol +
+      W.liquidity * nLiq +
+      W.momentum  * nMom +
+      W.activity  * nAct;
 
   let penaltyApplied = false;
   if (liq > 0 && fdv / Math.max(liq, 1) > FDV_LIQ_PENALTY.ratio) {

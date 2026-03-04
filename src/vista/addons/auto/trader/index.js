@@ -1,4 +1,5 @@
 import { isNodeLike as _isNodeLike } from "../lib/runtime.js";
+import { appendPnlEvent } from "../lib/stores/traderStore.js";
 import { createSolanaDepsLoader } from "../lib/solana/deps.js";
 import { createConnectionGetter } from "../lib/solana/connection.js";
 import { createConfirmSig } from "../lib/solana/confirm.js";
@@ -60,6 +61,7 @@ import { createDex } from "../lib/dex.js";
 import { getAutoHelpModalHtml, wireAutoHelpModal } from "../help/modal.js";
 // Giscus disabled in Auto Trader (mounting it can lag ticks/cycles)
 
+import "../lib/sell/policies/registerAll.js"; // side-effect: populates sell-policy registry
 import { createPreflightSellPolicy } from "../lib/sell/policies/preflight.js";
 import { createLeaderModePolicy } from "../lib/sell/policies/leaderMode.js";
 import { createUrgentSellPolicy } from "../lib/sell/policies/urgent.js";
@@ -1481,7 +1483,20 @@ const executeSellDecisionPolicy = createExecuteSellDecisionPolicy({
   executeSwapWithConfirm,
   waitForTokenDebit,
   addRealizedPnl: _addRealizedPnl,
-  onRealizedPnl: (evt) => { try { agentOutcomes.record(evt); } catch {} },
+  onRealizedPnl: (evt) => {
+    try { agentOutcomes.record(evt); } catch {}
+    try {
+      appendPnlEvent({
+        ts:       evt.nowTs || Date.now(),
+        mint:     evt.mint,
+        symbol:   evt.symbol || '',
+        pnlSol:   evt.pnlSol,
+        costSol:  evt.costSold,
+        sizeFrac: evt.kind === 'sell_partial' ? null : 1,
+        reason:   evt.decision?.reason || evt.label || '',
+      });
+    } catch {}
+  },
   maybeStealthRotate,
   clearRouteDustFails,
 });

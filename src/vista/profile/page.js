@@ -59,7 +59,7 @@ function errorNotice(mount, msg) {
 
   mount.innerHTML = `
     <div id="fdvProfileErrorBackdrop" style="position:fixed;inset:0;z-index:9200;display:grid;place-items:center;padding:18px;background:color-mix(in srgb, var(--bg, #050607) 92%, transparent);backdrop-filter: blur(2px);-webkit-backdrop-filter: blur(2px);">
-      <div role="alert" aria-live="assertive" style="width:min(92vw,560px);border:1px solid var(--border, rgba(128,255,205,.22));border-radius:16px;background:linear-gradient(180deg,color-mix(in srgb, var(--panel, #0a0e0c) 92%, transparent),color-mix(in srgb, var(--panel2, #0a1410) 98%, transparent));box-shadow:var(--shadow-2, 0 18px 55px rgba(0,0,0,.55));padding:16px 16px 14px;">
+      <div role="alert" aria-live="assertive" style="width:min(92vw,560px);border:1px solid var(--border, rgba(168,85,247,.22));border-radius:16px;background:linear-gradient(180deg,color-mix(in srgb, var(--panel, #0a070f) 92%, transparent),color-mix(in srgb, var(--panel2, #0d0714) 98%, transparent));box-shadow:var(--shadow-2, 0 18px 55px rgba(0,0,0,.55));padding:16px 16px 14px;">
         <div style="font-weight:900;letter-spacing:.2px;margin:0 0 8px 0;">Token data unavailable</div>
         <div class="small" style="opacity:.92;line-height:1.5;">${safeMsg}</div>
         <div class="small" style="opacity:.72;margin-top:10px;">Tip: Sometimes this data is temporarily unavailable. Try again in a few moments.</div>

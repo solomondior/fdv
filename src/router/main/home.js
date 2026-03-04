@@ -1,6 +1,8 @@
 import { pipeline, stopPipelineStream } from '../../engine/pipeline.js';
 import { renderProfileView, closeProfileOverlay } from "../../vista/profile/page.js";
 import { renderHomeView } from '../../vista/meme/page.js';
+import { evaluateAlerts } from '../../core/alerts.js';
+import { trackPrices } from '../../core/rugTracker.js';
 import { renderShillContestView } from "../../vista/shill/page.js"; 
 import { renderShillLeaderboardView } from "../../vista/shill/leaderboard.js"; 
 import { hideLoading } from '../../core/tools.js';
@@ -193,6 +195,8 @@ async function runHome({ force = false } = {}) {
     stream: STREAM_ON,
     onUpdate: ({ items, ad, marquee }) => {
       if (Array.isArray(items) && items.length) {
+        try { evaluateAlerts(items); } catch {}
+        try { trackPrices(items); } catch {}
         enqueueRender({ items, ad, marquee });
       }
     }

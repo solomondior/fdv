@@ -35,6 +35,7 @@ import { FDV_PLATFORM_FEE_BPS } from "../../../../config/env.js";
 import { createRoundtripEdgeEstimator } from "../lib/honeypot.js";
 import { appendTrainingCapture } from "../../../../agents/training.js";
 import { GARY_TRAIN_SYSTEM_PROMPT } from "../../../../agents/personas/strategies/agent.gary.train.js";
+import { shareTradeCard } from "../../../../lib/tradeCard.js";
 
 const HOLD_SINGLE_LS_KEY = "fdv_hold_bot_v1";
 const HOLD_TABS_LS_KEY = "fdv_hold_tabs_v1";
@@ -660,6 +661,7 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 	let startBtn;
 	let stopBtn;
 	let chartBtn;
+	let shareBtnHold;
 	let mintEl;
 	let pollEl;
 	let buyPctEl;
@@ -947,6 +949,7 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 			if (startBtn) startBtn.disabled = !!state.enabled;
 			if (stopBtn) stopBtn.disabled = !state.enabled;
 			if (chartBtn) chartBtn.disabled = !String(state.mint || "").trim();
+			if (shareBtnHold) shareBtnHold.hidden = !Number.isFinite(_lastPnlPct);
 			_updateRugUi();
 		} catch {}
 	}
@@ -2259,6 +2262,7 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 						<button data-hold-start>Start</button>
 						<button data-hold-stop>Stop</button>
 						<button data-hold-chart title="Open Dexscreener chart">Chart</button>
+					<button class="fdv-share-btn" data-hold-share hidden title="Share last trade">↗</button>
 					</div>
 				</div>
 
@@ -2310,6 +2314,7 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 		startBtn = root.querySelector("[data-hold-start]");
 		stopBtn = root.querySelector("[data-hold-stop]");
 		chartBtn = root.querySelector("[data-hold-chart]");
+		shareBtnHold = root.querySelector("[data-hold-share]");
 		const dextoolsDetailsEl = root.querySelector("[data-hold-dextools-details]");
 		const dextoolsSummaryEl = root.querySelector("[data-hold-dextools-summary]");
 		const dextoolsSummaryRowEl = root.querySelector("[data-hold-dextools-summary-row]");
@@ -2337,6 +2342,25 @@ function createHoldBotInstance({ id, initialState, onPersist, onAnyRunningChange
 						_unmountChat();
 						_syncChat({ force: true, allowWithoutInteraction: true });
 					} catch {}
+				});
+			}
+		} catch {}
+
+		try {
+			if (shareBtnHold) {
+				shareBtnHold.addEventListener('click', async () => {
+					const trade = {
+						symbol: String(state.mint || '').slice(0, 8) || 'HOLD',
+						mint: String(state.mint || ''),
+						pnlPct: Number.isFinite(_lastPnlPct) ? _lastPnlPct : 0,
+						pnlSol: Number.isFinite(_lastPnlEstOutSol) && Number.isFinite(_lastPnlCostSol)
+							? _lastPnlEstOutSol - _lastPnlCostSol : 0,
+						entryPrice: null,
+						exitPrice: null,
+						holdSecs: 0,
+						exitReason: '',
+					};
+					await shareTradeCard(trade, shareBtnHold);
 				});
 			}
 		} catch {}

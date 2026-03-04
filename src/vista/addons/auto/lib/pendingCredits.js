@@ -1,3 +1,26 @@
+// Module-level registry so any pending credit manager instance can be triggered
+// manually from the UI via the 'fdv:reconcile-now' CustomEvent.
+const _reconcileTargets = new Set();
+
+export function registerReconcileTarget(fn) {
+  _reconcileTargets.add(fn);
+  return () => _reconcileTargets.delete(fn);
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('fdv:reconcile-now', async () => {
+    const results = [];
+    for (const fn of _reconcileTargets) {
+      try { results.push(await fn()); } catch {}
+    }
+    try {
+      window.dispatchEvent(new CustomEvent('fdv:reconcile-result', {
+        detail: { settled: results.reduce((a, n) => a + (Number(n) || 0), 0) },
+      }));
+    } catch {}
+  });
+}
+
 function pcKey(owner, mint) {
   return `${owner}:${mint}`;
 }
@@ -286,6 +309,9 @@ export function createPendingCreditManager({
     }
   }
 
+  // Register this instance so the manual reconcile button can trigger it.
+  const unregister = registerReconcileTarget(processPendingCredits);
+
   return {
     clearPendingCredit,
     enqueuePendingCredit,
@@ -294,5 +320,6 @@ export function createPendingCreditManager({
     stopPendingCreditWatchdog,
     hasPendingCredit,
     pendingCreditsSize,
+    unregister,
   };
 }

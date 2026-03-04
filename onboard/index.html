@@ -29,13 +29,13 @@
 		<div class="topbar">
 			<div class="wrap">
 				<div class="topbar-inner">
+					<a class="topbar-logo" href="#top">Agent Gary</a>
 					<nav class="nav" aria-label="Primary">
-                        <a href="https://fdv.lol">fdv.lol</a>
 						<a href="#how">How it works</a>
 						<a href="#tools">Tools</a>
 						<a href="https://github.com/builders-toronto/fdv.lol/blob/main/src/vista/widgets/auto/docs/guide.md" target="_blank" rel="noreferrer">Guide</a>
 						<a href="#safety">Safety</a>
-						<a href="#faq">FAQ</a>
+						<a class="btn small primary" href="/" style="margin-left:8px;">Launch App</a>
 					</nav>
 				</div>
 			</div>
@@ -46,18 +46,16 @@
 				<div class="wrap">
 					<div class="hero-grid">
 						<div>
-							<h1>Understand the Auto Trader first. Then decide how automated you want to be.</h1>
+							<h1>Solana memecoin radar with AI-powered auto trading</h1>
 							<p class="sub">
-								fdv.lol’s Auto Trader is an engine: it watches Pumping Radar leaders, runs a chain of safety gates,
-								quotes routes, executes, and manages exits.
-								Agent Gary adds an <strong>agentic, approval-based</strong> decision layer for entries -the system does the measuring,
-								but it won’t buy unless Gary explicitly approves.
+							fdv.lol scans Pumping Radar leaders, runs a chain of safety gates,
+							and executes via Jupiter. Enable <strong>Agent Gary</strong> for
+							approval-based entries — the engine measures, Gary decides.
 							</p>
 
 							<div class="cta-row">
-								<a class="btn primary" href="#get-access">Get 1:1 coaching</a>
-								<a class="btn ghost" href="#how">How Auto Trader works</a>
-								<a class="btn ghost" href="#tools">Explore tools</a>
+							<a class="btn primary" href="/">Launch App →</a>
+								<a class="btn ghost" href="#how">How it works ↓</a>
 							</div>
 
 							<div class="fine">
@@ -72,26 +70,15 @@
 							</div>
 						</div>
 
-						<aside class="card card-pad video" aria-label="Demo" id="demo">
-							<div class="video-header">
-								<a class="btn small ghost" href="https://www.youtube.com/watch?v=LUboJNCMow8" target="_blank" rel="noreferrer">Open on YouTube</a>
+						<aside class="card card-pad hero-demo" aria-label="Live demo" id="demo">
+							<div class="anim-stage" aria-hidden="true">
+								<div class="anim-line anim-step1">$ scanning 487 tokens...</div>
+								<div class="anim-line anim-step2">✓ FDV  ✓ Liquidity  ✓ Volume  ✓ Age</div>
+								<div class="anim-line anim-step3">Agent Gary: reviewing BONK...</div>
+								<div class="anim-line anim-step4 anim-approved">▶ APPROVED — executing buy</div>
+								<div class="anim-cursor"></div>
 							</div>
-							<div class="video-frame">
-								<iframe
-									width="560"
-									height="315"
-									src="https://www.youtube.com/embed/LUboJNCMow8?si=pdt-flJI-abeUH8m"
-									title="YouTube video player"
-									frameborder="0"
-									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-									referrerpolicy="strict-origin-when-cross-origin"
-									allowfullscreen
-									loading="lazy"
-								></iframe>
-							</div>
-							<p class="help" style="margin:12px 0 0 0;">
-								If the embed doesn't load, use "Open on YouTube" above.
-							</p>
+							<p class="help" style="margin:12px 0 0;">Agent Gary in action — approval-based entries, live.</p>
 						</aside>
 					</div>
 				</div>
@@ -216,7 +203,6 @@
 							</ul>
 							<div class="cta-row" style="margin-top:14px;">
 								<a class="btn ghost" href="https://github.com/builders-toronto/fdv.lol" target="_blank" rel="noreferrer">Verify in source</a>
-								<a class="btn primary" href="https://fdv.lol" target="_blank" rel="noreferrer">Open the app</a>
 							</div>
 							<p class="help" style="margin:12px 0 0 0;">
 								Recommendation: start by reading the guide, then do a short sanity run before expecting any performance.
@@ -281,144 +267,26 @@
 				</div>
 			</section>
 
-			<section id="get-access">
-				<div class="wrap">
-					<h2 class="section-title">Get 1:1 coaching</h2>
-					<p class="section-sub">
-						Get hands-on help to set up your bots safely: RPC, wallets, safety posture, and how to confirm your mode.
-					</p>
 
-					<div class="two">
-						<div class="card card-pad">
-								<h3 class="section-title section-sub" style="margin-bottom:8px;">What we'll cover</h3>
-								<p class="section-sub" style="margin-bottom:12px;">
-										A short, practical 1:1 that matches how the system actually behaves.
-										We'll set RPC, create/fund the Auto Wallet with fee runway, set a Recipient, and identify the key log lines
-										that confirm a healthy session. If you enable Agent Gary, entries become approval-based: the bot measures and gates,
-										and only enters on explicit approval.
-								</p>
-								<div class="cta-row" style="margin-top:0;">
-										<a class="btn small ghost" href="https://github.com/builders-toronto/fdv.lol/blob/main/src/vista/widgets/auto/docs/guide.md" target="_blank" rel="noreferrer">Read the full Auto Trader guide</a>
-								</div>
-								<div style="height:25px;"></div>
-							<form
-								class="form"
-								id="leadForm"
-								action="https://api.lfbuilders.ca/fdv/mail/inquiry"
-								method="post"
-							>
-								<input type="hidden" name="access_key" value="48ba9e0e-72b5-44c5-ab56-76b088276938" />
-								<input type="hidden" name="SERVICE" value="FDV.LOL - Agent Gary coaching (1:1)" />
-									<input type="hidden" id="redirect" name="redirect" value="https://fdv.lol" />
-									<input type="hidden" id="email_lc" name="email" value="" />
+		</main>
 
-									<div class="row">
-										<div class="field">
-											<label class="sr-only" for="email">Email</label>
-											<input id="email" name="EMAIL" type="email" placeholder="you@domain.com" autocomplete="email" inputmode="email" required />
-										</div>
-										<button class="btn primary" type="submit">Request coaching</button>
-									</div>
+		<footer>
 
-								<div class="help">
-										By submitting, you agree to be contacted about 1:1 coaching and occasional safety/product updates.
-											<a href="./policy.html">Policy</a>.
-								</div>
-							</form>
-						</div>
-
-						<div class="card card-pad card-spec">
-							<h3 class="section-title section-sub" style="margin-bottom:8px;">Prefer to self-serve?</h3>
-							<p class="section-sub" style="margin-bottom:14px;">
-									Start from sources, then launch when you're ready. You can always request coaching later.
-							</p>
-							<div class="cta-row" style="margin-top:0;">
-									<a class="btn ghost" href="https://github.com/builders-toronto/fdv.lol" target="_blank" rel="noreferrer">See the Github repo</a>
-									<a class="btn primary" href="https://fdv.lol" target="_blank" rel="noreferrer" style="font-size: 22px;">Launch fdv.lol</a>
-									<a class="btn ghost" href="https://t.me/fdvlolgroup" target="_blank" rel="noreferrer">Telegram support</a>
-							</div>
-							<p class="help" style="margin:12px 0 0 0;">
-									Tip: verify links from the repo and use a burner Auto Wallet with a Recipient set.
-							</p>
-						</div>
-					</div>
-				</div>
-			</section>
-
-			<section id="faq">
-				<div class="wrap">
-					<h2 class="section-title">FAQ</h2>
-					<p class="section-sub">Short answers to the questions people ask before running automation.</p>
-
-					<div class="two" style="gap:24px;">
-						<details>
-							<summary>Do you hold funds or run accounts for users?</summary>
-							<p>No. It’s client-side tooling -you control keys and execution. Use explicit limits and small balances while testing.</p>
-						</details>
-						<details>
-							<summary>What is Agent Gary, exactly?</summary>
-							<p>An optional decision agent for Auto Trader. With Gary enabled, entries are approval-based: the bot won't buy unless Gary approves.</p>
-						</details>
-						<details>
-							<summary>Does Agent Gary get my private keys?</summary>
-							<p>No. He receives a compact, precomputed signals payload and returns a JSON decision. Keys stay with you; signing happens locally.</p>
-						</details>
-						<details>
-							<summary>Why didn't it buy anything?</summary>
-							<p>Often it's a gate, not a bug: no route/quote, insufficient leader series, edge/simulation enforcement, or Gary mode enabled without a key (buys blocked by design).</p>
-						</details>
-					</div>
-				</div>
-			</section>
-
-			<footer>
-
-			<script type="module" src="/src/core/sw/register.js"></script>
 				<div class="wrap">
 
 					<div class="footer-links">
-						<a href="https://fdv.lol" target="_blank" rel="noreferrer">fdv.lol</a>
 						<a href="https://github.com/builders-toronto/fdv.lol" target="_blank" rel="noreferrer">GitHub</a>
 						<a href="https://x.com/fdvlol" target="_blank" rel="noreferrer">X</a>
 						<a href="https://t.me/fdvlolgroup" target="_blank" rel="noreferrer">Telegram</a>
 							<a href="./policy.html">Policy</a>
 					</div>
-					<div style="margin-top:10px; opacity:.9;">© fdv.lol • Agent Gary</div>
-                    					<div>
-						<strong>Disclosure:</strong> fdv.lol is a research/education tool and is not financial advice.
+					<div style="margin-top:10px; opacity:.9;">© Agent Gary</div>
+			<div>
+						<strong>Disclosure:</strong> This is a research/education tool and is not financial advice.
 						Trading is risky and you can lose money. Use a burner wallet, keep balances small, and verify everything.
 					</div>
 				</div>
-			</footer>
-		</main>
-
-		<script>
-			(function () {
-				var redirectInput = document.getElementById('redirect');
-				var emailInput = document.getElementById('email');
-				var emailLcInput = document.getElementById('email_lc');
-				var form = document.getElementById('leadForm');
-				if (!redirectInput) return;
-
-				try {
-					var url = new URL(window.location.href);
-					var basePath = url.pathname.replace(/index\.html?$/, '');
-					if (!basePath.endsWith('/')) basePath = basePath + '/';
-					redirectInput.value = url.origin + basePath + 'thanks.html';
-				} catch (_) {}
-
-				function syncEmail() {
-					if (emailLcInput && emailInput) emailLcInput.value = emailInput.value || '';
-				}
-				if (emailInput) {
-					emailInput.addEventListener('input', syncEmail);
-					emailInput.addEventListener('blur', syncEmail);
-				}
-				if (form) {
-					form.addEventListener('submit', syncEmail);
-				}
-			})();
-		</script>
+		</footer>
 		<script>
 			(function () {
 				if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

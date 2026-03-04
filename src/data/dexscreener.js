@@ -1,4 +1,4 @@
-import { MEME_KEYWORDS } from '../config/env.js'
+import { MEME_KEYWORDS, CACHE_TTL } from '../config/env.js'
 import { getJSON, fetchDS, fetchJsonNoThrow } from '../core/tools.js';
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -6,8 +6,8 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 const MAX_CONCURRENT   = 4;
 const START_SPACING_MS = 200;
 
-const FETCH_TTL_MS_SEARCH = 2 * 60_000;  
-const FETCH_TTL_MS_TOKEN  = 10 * 60_000;  
+const FETCH_TTL_MS_SEARCH = CACHE_TTL.dexscreener_search;
+const FETCH_TTL_MS_TOKEN  = CACHE_TTL.dexscreener_token;
 
 async function mapWithLimit(items, limit, fn, { spacingMs = 0 } = {}) {
   const results = new Array(items.length);

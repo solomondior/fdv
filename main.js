@@ -1,6 +1,7 @@
 import './src/core/sw/register.js';
 
 import { router } from './src/router/switch.js';
+import { initWelcomeModal } from './src/vista/welcome/modal.js';
 
 // Eager-load route modules so SPA transitions can't leave them "offline".
 import './src/vista/profile/page.js';
@@ -26,5 +27,7 @@ try {
 } catch {}
 
 try { captureReferralFromUrl?.({ stripParam: true }); } catch {}
+
+try { initWelcomeModal(); } catch {}
 
 router.dispatch({ withLoading: true, defer: true });

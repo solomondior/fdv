@@ -138,7 +138,30 @@
           <option value="volume">Sort: 24h Volume</option>
           <option value="liquidity">Sort: Liquidity</option>
           <option value="change24">Sort: 24h Change</option>
+          <option value="watchlist">★ Watchlist</option>
         </select>
+        <details id="fdv-score-playground" class="fdv-score-playground">
+          <summary>⚗ Scoring</summary>
+          <div class="fdv-sp-body">
+            <div class="fdv-sp-row">
+              <label>Volume <span class="fdv-sp-pct" data-sp-pct="volume">35%</span></label>
+              <input type="range" min="0" max="100" step="1" data-sp-slider="volume" value="35">
+            </div>
+            <div class="fdv-sp-row">
+              <label>Liquidity <span class="fdv-sp-pct" data-sp-pct="liquidity">25%</span></label>
+              <input type="range" min="0" max="100" step="1" data-sp-slider="liquidity" value="25">
+            </div>
+            <div class="fdv-sp-row">
+              <label>Momentum <span class="fdv-sp-pct" data-sp-pct="momentum">20%</span></label>
+              <input type="range" min="0" max="100" step="1" data-sp-slider="momentum" value="20">
+            </div>
+            <div class="fdv-sp-row">
+              <label>Activity <span class="fdv-sp-pct" data-sp-pct="activity">20%</span></label>
+              <input type="range" min="0" max="100" step="1" data-sp-slider="activity" value="20">
+            </div>
+            <button class="fdv-sp-reset" type="button" data-sp-reset>Reset to defaults</button>
+          </div>
+        </details>
         <div class="innerControls">
           <button id="refresh" class="btn">Refresh</button>
           <button id="stream" class="btn" aria-pressed="true">Stream: On</button>

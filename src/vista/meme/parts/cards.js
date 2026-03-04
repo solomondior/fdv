@@ -4,7 +4,10 @@ import { EXPLORER, FALLBACK_LOGO, JUP_SWAP, shortAddr } from '../../../config/en
 import { buildSocialLinksHtml, iconFor } from '../../../lib/socialBuilder.js';
 import { fmtUsd, normalizeWebsite } from '../../../core/tools.js';
 import { getTokenLogoPlaceholder, queueTokenLogoLoad } from '../../../core/ipfs.js';
-import { formatPriceParts, toDecimalString } from '../../../lib/formatPrice.js'; 
+import { formatPriceParts, toDecimalString } from '../../../lib/formatPrice.js';
+import { isWatched } from '../../../core/watchlist.js';
+import { hasPendingAlert } from '../../../core/alerts.js';
+import { getVoteModifier, getMyVote, getVoteNet } from '../../../data/communityVotes.js';
 
 const __FDV_FLOAT_INIT = '__fdvCardFloatInit';
 const __FDV_FLOAT_STATE = '__fdvCardFloatState';
@@ -470,6 +473,14 @@ export function priceHTML(value) {
 }
 
 export function coinCard(it) {
+  const voteModifier = getVoteModifier(it.mint);
+  const voteModStr = voteModifier !== 0
+    ? ` <span class="fdv-score-mod ${voteModifier > 0 ? 'pos' : 'neg'}">${voteModifier > 0 ? '+' : ''}${(voteModifier * 100).toFixed(0)} comm</span>`
+    : '';
+  const myVote = getMyVote(it.mint);
+  const netRaw = getVoteNet(it.mint);
+  const netStr = (netRaw == null || netRaw === 0) ? '·' : (netRaw > 0 ? `+${netRaw}` : `${netRaw}`);
+
   const sym = it.symbol || it.name || '';
   const rawlogo = String(it.logoURI || '');
   const logo = getTokenLogoPlaceholder(rawlogo, sym) || FALLBACK_LOGO(it.symbol);
@@ -605,12 +616,29 @@ export function coinCard(it) {
         title="Click to copy mint"
       >${escAttr(shortAddr(it.mint))}</span>
     </div>
-    <a class="t-profile" data-link href="/token/${escAttr(it.mint)}">Profile</a>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button type="button" class="alert-bell${hasPendingAlert(it.mint) ? ' active' : ''}"
+        data-alert-btn data-mint="${escAttr(it.mint)}"
+        data-symbol="${escAttr(it.symbol || '')}"
+        data-price="${it.priceUsd != null ? escAttr(String(it.priceUsd)) : ''}"
+        aria-label="Set price alert" title="Set price alert">🔔</button>
+      <button type="button" class="watch-star${isWatched(it.mint) ? ' active' : ''}"
+        data-watch-btn data-mint="${escAttr(it.mint)}"
+        aria-label="Watch" title="Add to watchlist">★</button>
+      <span class="fdv-vote-pill">
+        <button type="button" class="fdv-vote-btn fdv-vote-up${myVote === 1 ? ' voted' : ''}"
+          data-vote="1" data-mint="${escAttr(it.mint)}" title="Boost">▲</button>
+        <span class="fdv-vote-net" data-vote-net data-mint="${escAttr(it.mint)}">${netStr}</span>
+        <button type="button" class="fdv-vote-btn fdv-vote-dn${myVote === -1 ? ' voted' : ''}"
+          data-vote="-1" data-mint="${escAttr(it.mint)}" title="Suppress">▼</button>
+      </span>
+      <a class="t-profile" data-link href="/token/${escAttr(it.mint)}">Profile</a>
+    </div>
   </div>
 
   <div class="metrics">
     <div class="kv"><div class="k">Price</div><div class="v v-price">${it.priceUsd != null ? priceHTML(+it.priceUsd) : '—'}</div></div>
-    <div class="kv"><div class="k">Trending Score</div><div class="v v-score">${Math.round((it.score||0)*100)} / 100</div></div>
+    <div class="kv"><div class="k">Trending Score</div><div class="v v-score">${Math.round((it.score||0)*100)} / 100${voteModStr}</div></div>
     <div class="kv"><div class="k">24h Volume</div><div class="v v-vol24">${fmtUsd(it.volume?.h24)}</div></div>
     <div class="kv"><div class="k">Liquidity</div><div class="v v-liq">${fmtUsd(it.liquidityUsd)}</div></div>
     <div class="kv"><div class="k">FDV</div><div class="v v-fdv">${it.fdv ? fmtUsd(it.fdv) : '—'}</div></div>
@@ -754,8 +782,12 @@ export function updateCardDOM(el, it) {
 
   const scoreEl = el.querySelector('.v-score');
   if (scoreEl) {
-    const txt = `${Math.round((it.score || 0) * 100)} / 100`;
-    if (scoreEl.textContent !== txt) scoreEl.textContent = txt;
+    const mod = getVoteModifier(it.mint);
+    const modStr = mod !== 0
+      ? ` <span class="fdv-score-mod ${mod > 0 ? 'pos' : 'neg'}">${mod > 0 ? '+' : ''}${(mod * 100).toFixed(0)} comm</span>`
+      : '';
+    const nextHtml = `${Math.round((it.score || 0) * 100)} / 100${modStr}`;
+    if (scoreEl.innerHTML !== nextHtml) scoreEl.innerHTML = nextHtml;
   }
 
   const volEl = el.querySelector('.v-vol24');
@@ -797,6 +829,26 @@ export function updateCardDOM(el, it) {
       // Fallback for older markup
       if (micro.innerHTML !== chips) micro.innerHTML = chips;
     }
+  }
+
+  const voteNetEl = el.querySelector(`[data-vote-net][data-mint="${it.mint}"]`);
+  if (voteNetEl) {
+    const nr = getVoteNet(it.mint);
+    voteNetEl.textContent = (nr == null || nr === 0) ? '·' : (nr > 0 ? `+${nr}` : `${nr}`);
+  }
+  const myV = getMyVote(it.mint);
+  const upBtn = el.querySelector('.fdv-vote-up');
+  if (upBtn) upBtn.classList.toggle('voted', myV === 1);
+  const dnBtn = el.querySelector('.fdv-vote-dn');
+  if (dnBtn) dnBtn.classList.toggle('voted', myV === -1);
+
+  const starEl = el.querySelector('[data-watch-btn]');
+  if (starEl) starEl.classList.toggle('active', isWatched(it.mint));
+
+  const bellEl = el.querySelector('[data-alert-btn]');
+  if (bellEl) {
+    bellEl.classList.toggle('active', hasPendingAlert(it.mint));
+    if (it.priceUsd != null) bellEl.dataset.price = String(it.priceUsd);
   }
 }
 

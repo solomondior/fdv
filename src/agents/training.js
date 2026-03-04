@@ -665,3 +665,99 @@ export function installTrainingDebugGlobal({ force = false } = {}) {
 try {
 	if (typeof window !== "undefined") installTrainingDebugGlobal({ force: false });
 } catch {}
+
+// ─── Dashboard-facing helpers ────────────────────────────────────────────────
+
+/**
+ * Return all captures from IDB, optionally filtered to a storageKey.
+ * Sorted newest-first. Falls back to [] on any error.
+ */
+export async function getAllCaptures({ storageKey } = {}) {
+	try {
+		const db = await _openDb();
+		if (!db) return [];
+		return await new Promise((resolve) => {
+			try {
+				const tx = db.transaction(DB_STORE, "readonly");
+				const store = tx.objectStore(DB_STORE);
+				let req;
+				if (storageKey) {
+					const idx = store.index("by_storageKey");
+					req = idx.getAll(IDBKeyRange.only(String(storageKey)));
+				} else {
+					req = store.getAll();
+				}
+				req.onsuccess = () => {
+					const rows = Array.isArray(req.result) ? req.result : [];
+					rows.sort((a, b) => Number(b?.ts ?? 0) - Number(a?.ts ?? 0));
+					resolve(rows);
+				};
+				req.onerror = () => resolve([]);
+				tx.oncomplete = () => { try { db.close(); } catch {} };
+				tx.onerror   = () => { try { db.close(); } catch {} };
+			} catch {
+				try { db.close(); } catch {}
+				resolve([]);
+			}
+		});
+	} catch {
+		return [];
+	}
+}
+
+/**
+ * Persist a label ('good' | 'bad' | 'skip' | null) for an existing IDB record.
+ * Passing null clears the label.
+ */
+export async function saveLabel(id, label) {
+	try {
+		const db = await _openDb();
+		if (!db) return { ok: false, skipped: true };
+		return await new Promise((resolve) => {
+			try {
+				const tx = db.transaction(DB_STORE, "readwrite");
+				const store = tx.objectStore(DB_STORE);
+				const getReq = store.get(id);
+				getReq.onsuccess = () => {
+					const rec = getReq.result;
+					if (!rec) { resolve({ ok: false, err: "not_found" }); return; }
+					rec.label     = label ?? null;
+					rec.labeledAt = label ? Date.now() : null;
+					store.put(rec);
+				};
+				getReq.onerror = () => resolve({ ok: false, err: "get_failed" });
+				tx.oncomplete = () => { try { db.close(); } catch {}; resolve({ ok: true }); };
+				tx.onerror    = () => { try { db.close(); } catch {}; resolve({ ok: false, err: String(tx.error || "tx_error") }); };
+			} catch (e) {
+				try { db.close(); } catch {}
+				resolve({ ok: false, err: String(e?.message || e || "idb_error") });
+			}
+		});
+	} catch (e) {
+		return { ok: false, err: String(e?.message || e || "idb_error") };
+	}
+}
+
+/**
+ * Delete a single capture by its IDB primary key.
+ */
+export async function deleteCapture(id) {
+	try {
+		const db = await _openDb();
+		if (!db) return { ok: false, skipped: true };
+		return await new Promise((resolve) => {
+			try {
+				const tx = db.transaction(DB_STORE, "readwrite");
+				const store = tx.objectStore(DB_STORE);
+				store.delete(id);
+				tx.oncomplete = () => { try { db.close(); } catch {}; resolve({ ok: true }); };
+				tx.onerror    = () => { try { db.close(); } catch {}; resolve({ ok: false, err: String(tx.error || "tx_error") }); };
+			} catch (e) {
+				try { db.close(); } catch {}
+				resolve({ ok: false, err: String(e?.message || e || "idb_error") });
+			}
+		});
+	} catch (e) {
+		return { ok: false, err: String(e?.message || e || "idb_error") };
+	}
+}
