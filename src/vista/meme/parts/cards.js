@@ -559,18 +559,14 @@ export function coinCard(it) {
       ><span class="fdv-lib-heart" aria-hidden="true">❤️</span><span class="fdv-lib-count">0</span></button>
     </div>`;
 
+  const chartUrl = pairUrl || `https://dexscreener.com/solana/${encodeURIComponent(it.mint)}`;
   const swapBtn = `
-    <button
-      type="button"
+    <a
       class="btn"
-      data-swap-btn
-      data-mint="${escAttr(it.mint)}"
-      data-relay="${escAttr(relay)}"
-      data-priority="${priority ? '1' : '0'}"
-      data-timeout-ms="${escAttr(timeoutMs)}"
-      data-pair-url="${escAttr(pairUrl)}"
-      data-swap-opts='${escAttr(JSON.stringify(swapOpts))}'
-    >Chart</button>`;
+      href="${escAttr(chartUrl)}"
+      target="_blank"
+      rel="noopener noreferrer"
+    >Chart ↗</a>`;
 
   const holdBtn = `
     <button
