@@ -1221,13 +1221,18 @@ body[data-home-collapsed="1"] #cards{
   contain-intrinsic-size: auto 280px;
 }
 .card::before{
-  pointer-events:none; 
+  pointer-events:none;
   z-index: 0;
   content:""; position:absolute; inset:-2px; border-radius:18px;
-  filter: blur(18px); opacity:.0; transition: .25s opacity;
+  background: radial-gradient(ellipse at 50% 100%, rgba(168,85,247,.45) 0%, transparent 70%);
+  filter: blur(18px); opacity:.0; transition: .3s opacity;
 }
-.card:hover{ border-color: rgba(168,85,247,.35); box-shadow: 0 30px 60px rgba(168,85,247,.08)}
-.card:hover::before{opacity:.6}
+.card:hover{
+  border-color: rgba(168,85,247,.5);
+  box-shadow: 0 16px 40px rgba(0,0,0,.45), 0 0 0 1px rgba(168,85,247,.18);
+  transform: translateY(-4px);
+}
+.card:hover::before{ opacity:1 }
 
 /* When a card is floated above the grid (drag-hover), remove content-visibility
    so the browser doesn't skip rendering it at its fixed position. */
@@ -2093,6 +2098,7 @@ hr.sep{border:0; border-top:1px dashed var(--dash); margin:10px 0}
 .fdv-modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.55);
   display:none; align-items:center; justify-content:center; z-index:9999 }
 .fdv-modal-backdrop.show{ display:flex }
+.fdv-modal-backdrop.show .fdv-modal{ display:flex }
 
 .fdv-modal{
   display: none;
