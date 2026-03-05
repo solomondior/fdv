@@ -151,7 +151,7 @@ export function adCard(ad){
       <div class="adactions">
         ${icons}
         <a class="adbtn primary" href="${buyUrl}" target="_blank" rel="noopener">${cta}</a>
-        <a class="adbtn" href="https://fdv.lol/token/${ad.mint}" target="_blank" rel="noopener nofollow">Profile</a>
+        <a class="adbtn" href="${location.origin}/token/${ad.mint}" target="_blank" rel="noopener nofollow">Profile</a>
       </div>
     </div>
   </section>`;

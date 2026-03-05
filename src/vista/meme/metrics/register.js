@@ -519,7 +519,7 @@ function renderAddon(addon) {
 
     return `
       <li class="addon-item">
-        <a href="https://fdv.lol/token/${row.mint}" target="_blank" rel="noopener">
+        <a href="${location.origin}/token/${row.mint}" target="_blank" rel="noopener">
           ${holdBtnHtml}
           <div class="addon-avatar">
             <div class="addon-rank r${i+1}">${i+1}</div>

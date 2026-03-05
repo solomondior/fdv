@@ -22,7 +22,7 @@ export function wireNavigation({ onBack }) {
 
 export function wireCopy(mint) {
   document.getElementById("btnCopyMint")?.addEventListener("click", () =>
-    navigator.clipboard.writeText("https://fdv.lol/token/" + mint).catch(()=>{})
+    navigator.clipboard.writeText(location.origin + "/token/" + mint).catch(()=>{})
     .then(() => {
       const btn = document.getElementById("btnCopyMint");
       if (!btn) return;
