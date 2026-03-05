@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'fdv-static-v1';
+const CACHE_VERSION = 'fdv-static-v2';
 const RUNTIME_CACHE = `${CACHE_VERSION}:runtime`;
 
 const PRECACHE_URLS = [
