@@ -1,0 +1,11 @@
+{
+  "redirects": [
+    { "source": "/", "destination": "/onboard/", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/app", "destination": "/index.html" },
+    { "source": "/token/(.*)", "destination": "/index.html" },
+    { "source": "/shill/(.*)", "destination": "/index.html" },
+    { "source": "/leaderboard/(.*)", "destination": "/index.html" }
+  ]
+}

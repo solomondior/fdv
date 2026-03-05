@@ -178,21 +178,21 @@ function initRouter({
 
 export const router = initRouter({
     onHome: () => {
-        document.title = 'FDV.lol';
+        document.title = 'Gary';
         showHome();
     },
     onProfile: ({ mint }) => {
-        document.title = `${mint.slice(0, 6)}… • FDV.lol`;
+        document.title = `${mint.slice(0, 6)}… • Gary`;
         showProfile({ mint });
     },
     onShill: ({ mint, leaderboard } = {}) => {
         document.title = leaderboard
-          ? `Leaderboard ${mint.slice(0, 6)}… • FDV.lol`
-          : `Shill ${mint.slice(0, 6)}… • FDV.lol`;
+          ? `Leaderboard ${mint.slice(0, 6)}… • Gary`
+          : `Shill ${mint.slice(0, 6)}… • Gary`;
         showShill({ mint, leaderboard });
     },
     onNotFound: () => {
-        document.title = '404 Not Found • FDV.lol';
+        document.title = '404 Not Found • Gary';
         showHome();
     }
 });
