@@ -3,7 +3,7 @@ const KEY = 'fdv_welcome_seen';
 const SLIDES = [
   {
     title: 'Radar scans 500+ tokens in real-time',
-    sub: 'gary.lol monitors Pumping Radar leaders — scored, ranked, and refreshed every cycle.',
+    sub: 'agentgarry.xyz monitors Pumping Radar leaders — scored, ranked, and refreshed every cycle.',
   },
   {
     title: 'Safety gates filter every entry',
@@ -163,7 +163,7 @@ function buildHTML() {
           <span class="wm-dot r"></span>
           <span class="wm-dot y"></span>
           <span class="wm-dot g"></span>
-          <span class="wm-url">gary.lol — memecoin radar</span>
+          <span class="wm-url">agentgarry.xyz — memecoin radar</span>
         </div>
         <div id="wm-content"></div>
       </div>
@@ -179,7 +179,7 @@ function buildHTML() {
       </div>
 
       <div id="wm-bar">
-        <span id="wm-label">🚀 gary.lol — Solana memecoin radar</span>
+        <span id="wm-label">🚀 agentgarry.xyz — Solana memecoin radar</span>
         <button id="wm-next">Next →</button>
       </div>
     </div>
